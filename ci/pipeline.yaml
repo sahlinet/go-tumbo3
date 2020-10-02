@@ -67,27 +67,6 @@
                   cd go/src/github.com/sahlinet/go-tumbo3
                   go vet ./...
                   go test -v ./...
-    - name: build
-      public: true
-      plan:
-        - get: go-tumbo-git
-          trigger: true
-        - get: golang-1.14.x-image
-  
-        - task: build-binary
-  #        passed: ["build"]
-          image: golang-1.14.x-image
-          config:
-            << : *task-config
-            run:
-              path: /bin/sh
-              args:
-                - -c
-                - |
-                  GOPATH=$PWD/go
-                  cd go/src/github.com/sahlinet/go-tumbo3
-                  go generate ./...
-                  go build ./cmd/tumbo
     - name: web
       public: true
       plan:
@@ -114,6 +93,23 @@
       plan:
         - get: go-tumbo-git
           passed: ["web", "build", "unittest"]
+        - get: golang-1.14.x-image
+        - task: build-binary
+  #        passed: ["build"]
+          image: golang-1.14.x-image
+          config:
+            << : *task-config
+            run:
+              path: /bin/sh
+              args:
+                - -c
+                - |
+                  GOPATH=$PWD/go
+                  cd go/src/github.com/sahlinet/go-tumbo3
+                  go generate ./...
+                  go build ./cmd/tumbo -o build/tumbo
+            outputs:
+              - name: build-output
         - task: build
           privileged: true
           config:
@@ -125,8 +121,10 @@
                 repository: vito/oci-build-task
       
             inputs:
-            - name: go-tumbo-git
-              path: .
+            - name: build-output
+
+            params:
+              CONTEXT: build-output/build
       
             outputs:
             - name: image
