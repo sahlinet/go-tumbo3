@@ -1,0 +1,139 @@
+---
+  resources:
+    - name: go-tumbo-git
+      type: git
+      icon: github
+      source:
+        uri: https://github.com/sahlinet/go-tumbo3.git
+  
+    - name: golang-1.14.x-image
+      type: registry-image
+      icon: docker
+      source:
+        repository: golang
+        tag: 1.14-stretch
+  
+    - name: elm-image
+      type: registry-image
+      icon: docker
+      source:
+        repository: codesimple/elm
+        tag: 0.19
+  
+    - name: go-tumbo-image
+      type: registry-image
+      icon: docker
+      source:
+        repository: philipsahli/go-tumbo
+        username: ((docker.username))
+        password: ((docker.password))
+  
+  task-config: &task-config
+    platform: linux
+    inputs:
+      - name: go-tumbo-git
+        path: go/src/github.com/sahlinet/go-tumbo3
+    params:
+      GO111MODULE: "on"
+    run:
+      path: /bin/sh
+      args:
+        - -c
+        - |
+          GOPATH=$PWD/go
+  
+          cd go/src/github.com/sahlinet/go-tumbo3
+  
+          go vet ./...
+          go test -v ./...
+  
+  jobs:
+    - name: unittest
+      public: true
+      plan:
+        - get: go-tumbo-git
+          trigger: true
+        - get: golang-1.14.x-image
+        - task: run-tests
+          image: golang-1.14.x-image
+          config:
+            << : *task-config
+            run:
+              path: /bin/sh
+              args:
+                - -c
+                - |
+                  GOPATH=$PWD/go
+                  cd go/src/github.com/sahlinet/go-tumbo3
+                  go vet ./...
+                  go test -v ./...
+    - name: build
+      public: true
+      plan:
+        - get: go-tumbo-git
+          trigger: true
+        - get: golang-1.14.x-image
+  
+        - task: build-binary
+  #        passed: ["build"]
+          image: golang-1.14.x-image
+          config:
+            << : *task-config
+            run:
+              path: /bin/sh
+              args:
+                - -c
+                - |
+                  GOPATH=$PWD/go
+                  cd go/src/github.com/sahlinet/go-tumbo3
+                  go generate ./...
+                  go build ./cmd/tumbo
+    - name: web
+      public: true
+      plan:
+        - in_parallel:
+          - get: go-tumbo-git
+            trigger: true
+          - get: elm-image
+        - task: make-elm
+          image: elm-image
+          config:
+            platform: linux
+            inputs:
+              - name: go-tumbo-git
+                path: go-tumbo-git
+            run:
+              path: /bin/sh
+              args:
+                - -c
+                - |
+                  cd go-tumbo-git/web/elm
+                  elm make src/Main.elm
+  
+    - name: build-and-push
+      plan:
+        - get: go-tumbo-git
+          passed: ["web", "build", "unittest"]
+        - task: build
+          privileged: true
+          config:
+            platform: linux
+      
+            image_resource:
+              type: registry-image
+              source:
+                repository: vito/oci-build-task
+      
+            inputs:
+            - name: go-tumbo-git
+              path: .
+      
+            outputs:
+            - name: image
+      
+            run:
+              path: build
+    
+      # push using `registry-image` resource
+        - put: go-tumbo-image
+          params: {image: image/image.tar}
