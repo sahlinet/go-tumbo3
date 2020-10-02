@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-
-	"github.com/EDDYCJY/go-gin-example/pkg/setting"
-	"time"
+	"gorm.io/gorm"
+	//_ "github.com/jinzhu/gorm/dialects/postgres"
+	"gorm.io/driver/postgres"
 )
 
 var db *gorm.DB
@@ -23,35 +21,32 @@ type Model struct {
 // Setup initializes the database instance
 func Setup() {
 	var err error
-	db, err = gorm.Open(setting.DatabaseSetting.Type, fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8&parseTime=True&loc=Local",
-		setting.DatabaseSetting.User,
-		setting.DatabaseSetting.Password,
-		setting.DatabaseSetting.Host,
-		setting.DatabaseSetting.Name))
+	dsn := fmt.Sprintf("user=postgres password=mysecretpassword dbname=postgres host=localhost port=5432 sslmode=disable TimeZone=Europe/Zurich")
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
-	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-		return setting.DatabaseSetting.TablePrefix + defaultTableName
-	}
+//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+//		return setting.DatabaseSetting.TablePrefix + defaultTableName
+//	}
 
-	db.SingularTable(true)
-	db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
-	db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
-	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
-	db.DB().SetMaxIdleConns(10)
-	db.DB().SetMaxOpenConns(100)
+//	db.SingularTable(true)
+//	db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
+//	db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
+//	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
+//	db.DB().SetMaxIdleConns(10)
+//	db.DB().SetMaxOpenConns(100)
 }
 
 // CloseDB closes database connection (unnecessary)
 func CloseDB() {
-	defer db.Close()
+//	defer db.Close()
 }
 
 // updateTimeStampForCreateCallback will set `CreatedOn`, `ModifiedOn` when creating
-func updateTimeStampForCreateCallback(scope *gorm.Scope) {
+/*func updateTimeStampForCreateCallback(scope *gorm.Scope) {
 	if !scope.HasError() {
 		nowTime := time.Now().Unix()
 		if createTimeField, ok := scope.FieldByName("CreatedOn"); ok {
@@ -66,9 +61,9 @@ func updateTimeStampForCreateCallback(scope *gorm.Scope) {
 			}
 		}
 	}
-}
+}*/
 
-// updateTimeStampForUpdateCallback will set `ModifiedOn` when updating
+/*// updateTimeStampForUpdateCallback will set `ModifiedOn` when updating
 func updateTimeStampForUpdateCallback(scope *gorm.Scope) {
 	if _, ok := scope.Get("gorm:update_column"); !ok {
 		scope.SetColumn("ModifiedOn", time.Now().Unix())
@@ -104,7 +99,7 @@ func deleteCallback(scope *gorm.Scope) {
 		}
 	}
 }
-
+*/
 // addExtraSpaceIfExist adds a separator
 func addExtraSpaceIfExist(str string) string {
 	if str != "" {

@@ -10,15 +10,15 @@ definitions:
     type: object
 info:
   contact: {}
-  description: An example of gin
+  description: Tumbo
   license:
     name: MIT
-    url: https://github.com/EDDYCJY/go-gin-example/blob/master/LICENSE
-  termsOfService: https://github.com/EDDYCJY/go-gin-example
+    url: https://github.com/sahlinet/go-tumbo/blob/master/LICENSE
+  termsOfService: https://github.com/sahlinet/go-tumbo
   title: Golang Gin API
   version: "1.0"
 paths:
-  /api/v1/articles:
+  /api/v1/projects:
     get:
       parameters:
       - description: TagID
@@ -47,7 +47,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/app.Response'
-      summary: Get multiple articles
+      summary: Get multiple projects
     post:
       parameters:
       - description: TagID
@@ -97,8 +97,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/app.Response'
-      summary: Add article
-  /api/v1/articles/{id}:
+      summary: Add project
+  /api/v1/projects/{id}:
     delete:
       parameters:
       - description: ID
@@ -117,7 +117,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/app.Response'
-      summary: Delete article
+      summary: Delete project
     get:
       parameters:
       - description: ID
@@ -136,7 +136,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/app.Response'
-      summary: Get a single article
+      summary: Get a single project
     put:
       parameters:
       - description: ID
@@ -186,161 +186,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/app.Response'
-      summary: Update article
-  /api/v1/tags:
-    get:
-      parameters:
-      - description: Name
-        in: query
-        name: name
-        type: string
-      - description: State
-        in: query
-        name: state
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/app.Response'
-      summary: Get multiple article tags
-    post:
-      parameters:
-      - description: Name
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
-      - description: State
-        in: body
-        name: state
-        schema:
-          type: integer
-      - description: CreatedBy
-        in: body
-        name: created_by
-        schema:
-          type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/app.Response'
-      summary: Add article tag
-  /api/v1/tags/{id}:
-    delete:
-      parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/app.Response'
-      summary: Delete article tag
-    put:
-      parameters:
-      - description: ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Name
-        in: body
-        name: name
-        required: true
-        schema:
-          type: string
-      - description: State
-        in: body
-        name: state
-        schema:
-          type: integer
-      - description: ModifiedBy
-        in: body
-        name: modified_by
-        required: true
-        schema:
-          type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/app.Response'
-      summary: Update article tag
-  /api/v1/tags/export:
-    post:
-      parameters:
-      - description: Name
-        in: body
-        name: name
-        schema:
-          type: string
-      - description: State
-        in: body
-        name: state
-        schema:
-          type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/app.Response'
-      summary: Export article tag
-  /api/v1/tags/import:
-    post:
-      parameters:
-      - description: Image File
-        in: formData
-        name: image
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/app.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/app.Response'
-      summary: Import Image
+      summary: Update project
   /auth:
     get:
       parameters:

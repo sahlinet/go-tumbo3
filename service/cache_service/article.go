@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/EDDYCJY/go-gin-example/pkg/e"
+	"github.com/sahlinet/go-tumbo/pkg/e"
 )
 
-type Article struct {
+type Project struct {
 	ID    int
 	TagID int
 	State int
@@ -16,13 +16,13 @@ type Article struct {
 	PageSize int
 }
 
-func (a *Article) GetArticleKey() string {
-	return e.CACHE_ARTICLE + "_" + strconv.Itoa(a.ID)
+func (a *Project) GetProjectKey() string {
+	return e.CACHE_PROJECT+ "_" + strconv.Itoa(a.ID)
 }
 
-func (a *Article) GetArticlesKey() string {
+func (a *Project) GetProjectsKey() string {
 	keys := []string{
-		e.CACHE_ARTICLE,
+		e.CACHE_PROJECT,
 		"LIST",
 	}
 

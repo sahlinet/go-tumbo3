@@ -4,11 +4,10 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type Article struct {
+type Project struct {
 	Model
 
 	TagID int `json:"tag_id" gorm:"index"`
-	Tag   Tag `json:"tag"`
 
 	Title         string `json:"title"`
 	Desc          string `json:"desc"`
@@ -19,70 +18,70 @@ type Article struct {
 	State         int    `json:"state"`
 }
 
-// ExistArticleByID checks if an article exists based on ID
+// ExistArticleByID checks if an project exists based on ID
 func ExistArticleByID(id int) (bool, error) {
-	var article Article
-	err := db.Select("id").Where("id = ? AND deleted_on = ? ", id, 0).First(&article).Error
+	var project Project
+	err := db.Select("id").Where("id = ? AND deleted_on = ? ", id, 0).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return false, err
 	}
 
-	if article.ID > 0 {
+	if project.ID > 0 {
 		return true, nil
 	}
 
 	return false, nil
 }
 
-// GetArticleTotal gets the total number of articles based on the constraints
-func GetArticleTotal(maps interface{}) (int, error) {
-	var count int
-	if err := db.Model(&Article{}).Where(maps).Count(&count).Error; err != nil {
+// GetArticleTotal gets the total number of projects based on the constraints
+func GetArticleTotal(maps interface{}) (int64, error) {
+	var count int64
+	if err := db.Model(&Project{}).Where(maps).Count(&count).Error; err != nil {
 		return 0, err
 	}
 
 	return count, nil
 }
 
-// GetArticles gets a list of articles based on paging constraints
-func GetArticles(pageNum int, pageSize int, maps interface{}) ([]*Article, error) {
-	var articles []*Article
-	err := db.Preload("Tag").Where(maps).Offset(pageNum).Limit(pageSize).Find(&articles).Error
+// GetProjects gets a list of projects based on paging constraints
+func GetProjects(pageNum int, pageSize int, maps interface{}) ([]*Project, error) {
+	var projects []*Project
+	err := db.Preload("Tag").Where(maps).Offset(pageNum).Limit(pageSize).Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
-	return articles, nil
+	return projects, nil
 }
 
-// GetArticle Get a single article based on ID
-func GetArticle(id int) (*Article, error) {
-	var article Article
-	err := db.Where("id = ? AND deleted_on = ? ", id, 0).First(&article).Error
+// GetProject Get a single project based on ID
+func GetProject(id int) (*Project, error) {
+	var project Project
+	err := db.Where("id = ? AND deleted_on = ? ", id, 0).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
-	err = db.Model(&article).Related(&article.Tag).Error
+//	err = db.Model(&article).Related(&article.Tag).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
-	return &article, nil
+	return &project, nil
 }
 
-// EditArticle modify a single article
+// Editproject modify a single article
 func EditArticle(id int, data interface{}) error {
-	if err := db.Model(&Article{}).Where("id = ? AND deleted_on = ? ", id, 0).Updates(data).Error; err != nil {
+	if err := db.Model(&Project{}).Where("id = ? AND deleted_on = ? ", id, 0).Updates(data).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// AddArticle add a single article
+// Addproject add a single article
 func AddArticle(data map[string]interface{}) error {
-	article := Article{
+	project := Project{
 		TagID:         data["tag_id"].(int),
 		Title:         data["title"].(string),
 		Desc:          data["desc"].(string),
@@ -91,25 +90,25 @@ func AddArticle(data map[string]interface{}) error {
 		State:         data["state"].(int),
 		CoverImageUrl: data["cover_image_url"].(string),
 	}
-	if err := db.Create(&article).Error; err != nil {
+	if err := db.Create(&project).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// DeleteArticle delete a single article
+// Deleteproject delete a single article
 func DeleteArticle(id int) error {
-	if err := db.Where("id = ?", id).Delete(Article{}).Error; err != nil {
+	if err := db.Where("id = ?", id).Delete(Project{}).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// CleanAllArticle clear all article
+// CleanAllproject clear all article
 func CleanAllArticle() error {
-	if err := db.Unscoped().Where("deleted_on != ? ", 0).Delete(&Article{}).Error; err != nil {
+	if err := db.Unscoped().Where("deleted_on != ? ", 0).Delete(&Project{}).Error; err != nil {
 		return err
 	}
 
