@@ -32,7 +32,7 @@
     platform: linux
     inputs:
       - name: go-tumbo-git
-        path: go/src/github.com/sahlinet/go-tumbo3
+        path: go/go-tumbo3
     params:
       GO111MODULE: "on"
     run:
@@ -42,7 +42,7 @@
         - |
           GOPATH=$PWD/go
   
-          cd go/src/github.com/sahlinet/go-tumbo3
+          cd go/go-tumbo3
   
           go vet ./...
           go test -v ./...
@@ -64,7 +64,7 @@
                 - -c
                 - |
                   GOPATH=$PWD/go
-                  cd go/src/github.com/sahlinet/go-tumbo3
+                  cd go/go-tumbo3
                   go vet ./...
                   go test -v ./...
     - name: web
@@ -92,10 +92,9 @@
     - name: build-and-push
       plan:
         - get: go-tumbo-git
-          passed: ["web", "build", "unittest"]
+          passed: ["web", "unittest"]
         - get: golang-1.14.x-image
         - task: build-binary
-  #        passed: ["build"]
           image: golang-1.14.x-image
           config:
             << : *task-config
@@ -105,12 +104,12 @@
                 - -c
                 - |
                   GOPATH=$PWD/go
-                  cd go/src/github.com/sahlinet/go-tumbo3
+                  cd go/go-tumbo3
                   go generate ./...
-                  go build ./cmd/tumbo -o build/tumbo
+                  go build -o build/tumbo ./cmd/tumbo 
             outputs:
               - name: build-output
-        - task: build
+        - task: build-image
           privileged: true
           config:
             platform: linux
@@ -122,9 +121,10 @@
       
             inputs:
             - name: build-output
+              path: go/go-tumbo3
 
             params:
-              CONTEXT: build-output/build
+              CONTEXT: go/go-tumbo3/build/
       
             outputs:
             - name: image
