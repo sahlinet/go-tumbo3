@@ -11,8 +11,8 @@ import (
 	"github.com/sahlinet/go-tumbo/pkg/gredis"
 	"github.com/sahlinet/go-tumbo/pkg/logging"
 	"github.com/sahlinet/go-tumbo/pkg/setting"
-	"github.com/sahlinet/go-tumbo/routers"
 	"github.com/sahlinet/go-tumbo/pkg/util"
+	"github.com/sahlinet/go-tumbo/routers"
 )
 
 func init() {

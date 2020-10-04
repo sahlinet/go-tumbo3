@@ -2,11 +2,12 @@ package logging
 
 import (
 	"fmt"
-	"github.com/sahlinet/go-tumbo/pkg/file"
 	"log"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/sahlinet/go-tumbo/pkg/file"
 )
 
 type Level int

@@ -28,21 +28,21 @@ func Setup() {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
-//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-//		return setting.DatabaseSetting.TablePrefix + defaultTableName
-//	}
+	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+	//		return setting.DatabaseSetting.TablePrefix + defaultTableName
+	//	}
 
-//	db.SingularTable(true)
-//	db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
-//	db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
-//	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
-//	db.DB().SetMaxIdleConns(10)
-//	db.DB().SetMaxOpenConns(100)
+	//	db.SingularTable(true)
+	//	db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
+	//	db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
+	//	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
+	//	db.DB().SetMaxIdleConns(10)
+	//	db.DB().SetMaxOpenConns(100)
 }
 
 // CloseDB closes database connection (unnecessary)
 func CloseDB() {
-//	defer db.Close()
+	//	defer db.Close()
 }
 
 // updateTimeStampForCreateCallback will set `CreatedOn`, `ModifiedOn` when creating

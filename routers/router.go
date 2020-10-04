@@ -3,14 +3,14 @@ package routers
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/swaggo/gin-swagger"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	_ "github.com/sahlinet/go-tumbo/docs"
 
 	"github.com/sahlinet/go-tumbo/middleware/jwt"
 	"github.com/sahlinet/go-tumbo/routers/api"
-	"github.com/sahlinet/go-tumbo/routers/api/v1"
+	v1 "github.com/sahlinet/go-tumbo/routers/api/v1"
 )
 
 // InitRouter initialize routing information

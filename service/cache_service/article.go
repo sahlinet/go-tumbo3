@@ -17,7 +17,7 @@ type Project struct {
 }
 
 func (a *Project) GetProjectKey() string {
-	return e.CACHE_PROJECT+ "_" + strconv.Itoa(a.ID)
+	return e.CACHE_PROJECT + "_" + strconv.Itoa(a.ID)
 }
 
 func (a *Project) GetProjectsKey() string {

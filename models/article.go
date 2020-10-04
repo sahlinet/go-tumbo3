@@ -62,7 +62,7 @@ func GetProject(id int) (*Project, error) {
 		return nil, err
 	}
 
-//	err = db.Model(&article).Related(&article.Tag).Error
+	//	err = db.Model(&article).Related(&article.Tag).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
