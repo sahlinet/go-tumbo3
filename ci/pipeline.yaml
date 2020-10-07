@@ -32,7 +32,6 @@
     platform: linux
     inputs:
       - name: go-tumbo-git
-        path: go/go-tumbo3
     params:
       GO111MODULE: "on"
     run:
@@ -40,8 +39,6 @@
       args:
         - -c
         - |
-          GOPATH=$PWD/go
-  
           cd go/go-tumbo3
   
           go vet ./...
@@ -63,8 +60,7 @@
               args:
                 - -c
                 - |
-                  GOPATH=$PWD/go
-                  cd go/go-tumbo3
+                  cd go-tumbo-git
                   go vet ./...
                   go test -v ./...
     - name: web
@@ -96,6 +92,7 @@
         - get: golang-1.14.x-image
         - task: build-binary
           image: golang-1.14.x-image
+
           config:
             << : *task-config
             run:
@@ -103,12 +100,25 @@
               args:
                 - -c
                 - |
-                  GOPATH=$PWD/go
-                  cd go/go-tumbo3
+                  cp -rp go-tumbo-git go-tumbo-git-updated
+                  cd go-tumbo-git-updated/go-tumbo-git
                   go generate ./...
                   go build -o build/tumbo ./cmd/tumbo 
             outputs:
-              - name: build-output
+              - name: go-tumbo-git-updated
+        - task: output
+          image: golang-1.14.x-image
+          config:
+            << : *task-config
+            run:
+              path: /bin/sh
+              args:
+                - -c
+                - |
+                   pwd
+                   ls -alR
+            inputs:
+            - name: go-tumbo-git-updated
         - task: build-image
           privileged: true
           config:
@@ -120,11 +130,10 @@
                 repository: vito/oci-build-task
       
             inputs:
-            - name: build-output
-              path: go/go-tumbo3
+            - name: go-tumbo-git-updated
 
             params:
-              CONTEXT: go/go-tumbo3/build/
+              CONTEXT: go-tumbo-git-updated/go-tumbo-git/build/
       
             outputs:
             - name: image
