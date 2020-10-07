@@ -89,6 +89,7 @@
       plan:
         - get: go-tumbo-git
           passed: ["web", "unittest"]
+          trigger: true
         - get: golang-1.14.x-image
         - task: build-binary
           image: golang-1.14.x-image
@@ -100,25 +101,26 @@
               args:
                 - -c
                 - |
+                  export CGO_ENABLED=0
                   cp -rp go-tumbo-git go-tumbo-git-updated
                   cd go-tumbo-git-updated/go-tumbo-git
                   go generate ./...
                   go build -o build/tumbo ./cmd/tumbo 
             outputs:
               - name: go-tumbo-git-updated
-        - task: output
-          image: golang-1.14.x-image
-          config:
-            << : *task-config
-            run:
-              path: /bin/sh
-              args:
-                - -c
-                - |
-                   pwd
-                   ls -alR
-            inputs:
-            - name: go-tumbo-git-updated
+        # - task: output
+        #   image: golang-1.14.x-image
+        #   config:
+        #     << : *task-config
+        #     run:
+        #       path: /bin/sh
+        #       args:
+        #         - -c
+        #         - |
+        #            pwd
+        #            ls -alR
+        #     inputs:
+        #     - name: go-tumbo-git-updated
         - task: build-image
           privileged: true
           config:

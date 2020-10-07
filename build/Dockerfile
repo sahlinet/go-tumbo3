@@ -1,5 +1,5 @@
 FROM scratch
 
-COPY build/tumbo /goapp
+COPY tumbo /goapp
 
 ENTRYPOINT ["/goapp"]
