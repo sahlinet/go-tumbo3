@@ -1,12 +1,13 @@
 package models
 
 import (
-	"fmt"
-	"log"
+	"gorm.io/driver/postgres"
 
 	"gorm.io/gorm"
 	//_ "github.com/jinzhu/gorm/dialects/postgres"
-	"gorm.io/driver/postgres"
+//	"gorm.io/driver/postgres"
+"github.com/DATA-DOG/go-sqlmock"
+	log "github.com/sirupsen/logrus"
 )
 
 var db *gorm.DB
@@ -19,10 +20,32 @@ type Model struct {
 }
 
 // Setup initializes the database instance
-func Setup() {
+func Setup() *gorm.DB {
 	var err error
-	dsn := fmt.Sprintf("user=postgres password=mysecretpassword dbname=postgres host=localhost port=5432 sslmode=disable TimeZone=Europe/Zurich")
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	//dsn := fmt.Sprintf("user=postgres password=mysecretpassword dbname=postgres host=localhost port=5432 sslmode=disable TimeZone=Europe/Zurich")
+
+
+
+	dbm, mock, err := sqlmock.New()
+	if err != nil {
+		log.Errorf("Failed to open mock sql db, got error: %v", err)
+	}
+
+	if db == nil {
+		log.Error("mock db is null")
+	}
+
+	if mock == nil {
+		log.Error("sqlmock is null")
+	}
+
+	dialector := postgres.New(postgres.Config{
+		DSN:                  "sqlmock_db_0",
+		DriverName:           "postgres",
+		Conn:                 dbm,
+		PreferSimpleProtocol: true,
+	})
+	db, err = gorm.Open(dialector, &gorm.Config{})
 
 	if err != nil {
 		log.Fatalf("models.Setup err: %v", err)
@@ -38,6 +61,8 @@ func Setup() {
 	//	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
 	//	db.DB().SetMaxIdleConns(10)
 	//	db.DB().SetMaxOpenConns(100)
+
+	return db
 }
 
 // CloseDB closes database connection (unnecessary)

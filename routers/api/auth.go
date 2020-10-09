@@ -31,28 +31,10 @@ func GetAuth(c *gin.Context) {
 	username := c.PostForm("username")
 	password := c.PostForm("password")
 
-	a := auth{Username: username, Password: password}
-	ok, _ := valid.Valid(&a)
-
-	if !ok {
-		app.MarkErrors(valid.Errors)
-		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+	err, token, done := GetToken(username, password, valid, appG)
+	if done {
 		return
 	}
-
-	authService := auth_service.Auth{Username: username, Password: password}
-	isExist, err := authService.Check()
-	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
-		return
-	}
-
-	if !isExist {
-		appG.Response(http.StatusUnauthorized, e.ERROR_AUTH, nil)
-		return
-	}
-
-	token, err := util.GenerateToken(username, password)
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
 		return
@@ -61,4 +43,30 @@ func GetAuth(c *gin.Context) {
 	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
 		"token": token,
 	})
+}
+
+func GetToken(username string, password string, valid validation.Validation, appg app.Gin) (error, string, bool) {
+	a := auth{Username: username, Password: password}
+	ok, _ := valid.Valid(&a)
+
+	if !ok {
+		app.MarkErrors(valid.Errors)
+		appg.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
+		return nil, "", true
+	}
+
+	authService := auth_service.Auth{Username: username, Password: password}
+	isExist, err := authService.Check()
+	if err != nil {
+		appg.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
+		return nil, "", true
+	}
+
+	if !isExist {
+		appg.Response(http.StatusUnauthorized, e.ERROR_AUTH, nil)
+		return nil, "", true
+	}
+
+	token, err := util.GenerateToken(username, password)
+	return err, token, false
 }

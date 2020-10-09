@@ -3,6 +3,8 @@ module github.com/sahlinet/go-tumbo
 go 1.13
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
+	github.com/GeertJohan/go.rice v1.0.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.9.3-0.20171218111859-f16688817aa4
 	github.com/boombuler/barcode v1.0.1-0.20180315051053-3c06908149f7
@@ -17,7 +19,9 @@ require (
 	github.com/gomodule/redigo v2.0.1-0.20180401191855-9352ab68be13+incompatible
 	github.com/jinzhu/gorm v0.0.0-20180213101209-6e1387b44c64
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/markbates/pkger v0.17.1
 	github.com/mattn/go-sqlite3 v1.14.4 // indirect
+	github.com/sirupsen/logrus v1.7.0
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
 	github.com/unknwon/com v1.0.1

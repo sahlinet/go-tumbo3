@@ -1,11 +1,13 @@
+//go:generate pkger
+
 package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/markbates/pkger"
 	"log"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 
 	"github.com/sahlinet/go-tumbo/models"
 	"github.com/sahlinet/go-tumbo/pkg/gredis"
@@ -30,6 +32,9 @@ func init() {
 // @license.name MIT
 // @license.url https://github.com/sahlinet/go-tumbo/blob/master/LICENSE
 func main() {
+
+	pkger.Include("/web")
+
 	gin.SetMode(setting.ServerSetting.RunMode)
 
 	routersInit := routers.InitRouter()
