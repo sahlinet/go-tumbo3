@@ -4,23 +4,36 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/markbates/pkger"
+	"gorm.io/driver/postgres"
 	"log"
 	"net/http"
 
+	"github.com/gin-gonic/gin"
+	"github.com/markbates/pkger"
+	"gorm.io/gorm"
+
 	"github.com/sahlinet/go-tumbo/models"
 	"github.com/sahlinet/go-tumbo/pkg/gredis"
-	"github.com/sahlinet/go-tumbo/pkg/logging"
 	"github.com/sahlinet/go-tumbo/pkg/setting"
 	"github.com/sahlinet/go-tumbo/pkg/util"
 	"github.com/sahlinet/go-tumbo/routers"
 )
 
 func init() {
+
+	var err error
+	dsn := "user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Europe/Zurich"
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		log.Fatalf("models.Setup err: %v", err)
+	}
+
+	repository := &models.Repository{Db: db}
+
 	setting.Setup()
-	models.Setup()
-	logging.Setup()
+	models.Setup(repository)
+//	logging.Setup()
 	gredis.Setup()
 	util.Setup()
 }

@@ -2,10 +2,10 @@ package project_service
 
 import (
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/sahlinet/go-tumbo/models"
 	"github.com/sahlinet/go-tumbo/pkg/gredis"
-	"github.com/sahlinet/go-tumbo/pkg/logging"
 	"github.com/sahlinet/go-tumbo/service/cache_service"
 )
 
@@ -62,7 +62,7 @@ func (a *Project) Get() (*models.Project, error) {
 	if gredis.Exists(key) {
 		data, err := gredis.Get(key)
 		if err != nil {
-			logging.Info(err)
+			log.Info(err)
 		} else {
 			json.Unmarshal(data, &project)
 			return project, nil
@@ -94,7 +94,7 @@ func (a *Project) GetAll() ([]*models.Project, error) {
 	if gredis.Exists(key) {
 		data, err := gredis.Get(key)
 		if err != nil {
-			logging.Info(err)
+			log.Info(err)
 		} else {
 			json.Unmarshal(data, &cacheprojects)
 			return cacheprojects, nil

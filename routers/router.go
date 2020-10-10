@@ -1,3 +1,5 @@
+//go:generate rice embed-go
+
 package routers
 
 import (
@@ -41,7 +43,6 @@ func StaticFile(c *gin.Context) {
 func InitRouter() *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
 
 	//r.Use(static.Serve("/index.html", static.LocalFile("./static", true)))
 
@@ -65,6 +66,8 @@ func InitRouter() *gin.Engine {
 		//删除指定文章
 		apiv1.DELETE("/projects/:id", v1.DeleteArticle)
 	}
+
+	r.Use(gin.Recovery())
 
 	return r
 }

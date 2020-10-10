@@ -22,6 +22,7 @@ require (
 	github.com/markbates/pkger v0.17.1
 	github.com/mattn/go-sqlite3 v1.14.4 // indirect
 	github.com/sirupsen/logrus v1.7.0
+	github.com/stretchr/testify v1.5.1
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7
 	github.com/unknwon/com v1.0.1
