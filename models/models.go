@@ -19,8 +19,6 @@ type Model struct {
 	DeletedOn  int `json:"deleted_on"`
 }
 
-
-
 // Setup initializes the database instance
 func Setup(repository *Repository) *gorm.DB {
 	var err error

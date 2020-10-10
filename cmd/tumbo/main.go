@@ -33,7 +33,7 @@ func init() {
 
 	setting.Setup()
 	models.Setup(repository)
-//	logging.Setup()
+	//	logging.Setup()
 	gredis.Setup()
 	util.Setup()
 }
