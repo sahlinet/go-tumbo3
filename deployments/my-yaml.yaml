@@ -14,7 +14,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: nginx
+      app: tumbo-server
   replicas: 2 # tells deployment to run 2 pods matching the template
   template:
     metadata:
@@ -23,6 +23,6 @@ spec:
     spec:
       containers:
       - name: tumbo-server
-        image: philipsahli/tumbo-server:latest
+        image: philipsahli/go-tumbo:latest
         ports:
         - containerPort: 8000
