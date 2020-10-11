@@ -1,5 +1,3 @@
-//go:generate pkger
-
 package main
 
 import (
@@ -9,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/markbates/pkger"
 	"gorm.io/gorm"
 
 	"github.com/sahlinet/go-tumbo/models"
@@ -19,10 +16,11 @@ import (
 	"github.com/sahlinet/go-tumbo/routers"
 )
 
+
 func init() {
 
 	var err error
-	dsn := "user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Europe/Zurich"
+	dsn := "user=postgres password=mysecretpassword dbname=postgres host=localhost port=5432 sslmode=disable TimeZone=Europe/Zurich"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -45,8 +43,6 @@ func init() {
 // @license.name MIT
 // @license.url https://github.com/sahlinet/go-tumbo/blob/master/LICENSE
 func main() {
-
-	pkger.Include("/web")
 
 	gin.SetMode(setting.ServerSetting.RunMode)
 

@@ -3,6 +3,9 @@
 package routers
 
 import (
+	"path/filepath"
+	"strings"
+
 	rice "github.com/GeertJohan/go.rice"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -10,6 +13,7 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	_ "github.com/sahlinet/go-tumbo/docs"
+	"github.com/sahlinet/go-tumbo/pkg/version"
 
 	"github.com/sahlinet/go-tumbo/middleware/jwt"
 	"github.com/sahlinet/go-tumbo/routers/api"
@@ -27,16 +31,42 @@ func StaticFile(c *gin.Context) {
 		log.Fatalf("error opening rice.Box: %s\n", err)
 	}
 
-	contentString, err := box.String("index.html")
+	var l string
+	if c.Request.URL.Path == "/" {
+
+		l = "index.html"
+		c.Writer.Header().Set("Content-Type", "text/html")
+	}
+	p := c.Request.URL.Path[1:]
+
+	log.Info("Trying to load ", p)
+	if strings.HasPrefix(p, "static") {
+		//l = filepath.Base(p)
+		l = filepath.Base("app.js")
+		c.Writer.Header().Set("Content-Type", "text/javascript")
+	}
+
+
+	if l == "" {
+		c.String(404, "not found")
+	}
+
+	log.Info("Trying to load ", l)
+
+	contentString, err := box.String(l)
 	if err != nil {
 		log.Fatalf("could not read file contents as string: %s\n", err)
 	}
 
-	c.Writer.Header().Set("Content-Type", "text/html")
 	c.String(200, contentString)
 
 	//appG := app.Gin{C: c}
 	//appG.Response(http.StatusOK, e.ERROR_AUTH_TOKEN, nil)
+}
+
+func Version(c *gin.Context) {
+	c.String(200, version.BuildVersion)
+
 }
 
 // InitRouter initialize routing information
@@ -49,7 +79,9 @@ func InitRouter() *gin.Engine {
 	r.POST("/auth", api.GetAuth)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.GET("/index.html", StaticFile)
+	r.GET("/", StaticFile)
+	r.GET("/static/*js", StaticFile)
+	r.GET("/version", Version)
 
 	apiv1 := r.Group("/api/v1")
 	apiv1.Use(jwt.JWT())

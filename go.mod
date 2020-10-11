@@ -19,7 +19,6 @@ require (
 	github.com/gomodule/redigo v2.0.1-0.20180401191855-9352ab68be13+incompatible
 	github.com/jinzhu/gorm v0.0.0-20180213101209-6e1387b44c64
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/markbates/pkger v0.17.1
 	github.com/mattn/go-sqlite3 v1.14.4 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/stretchr/testify v1.5.1

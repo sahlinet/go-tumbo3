@@ -52,27 +52,14 @@ func init() {
 	repository := &models.Repository{Db: gdb}
 	models.Setup(repository)
 
-	//	rows := mock.NewRows([]string{"a"})
-
-	//mock.ExpectExec(`INSERT INTO .*`)//.WithArgs("{Name: Ordinal:1 Value:User}", "{Name: Ordinal:2 Value:Pw}")
-	//mock.ExpectExec(`INSERT INTO .*`).WithArgs("User", "Pw")
 	userRow := sqlmock.NewRows([]string{"id", "username", "password"}).
 		AddRow(1, "user1", "password")
 	log.Info(userRow)
 
-	// SELECT "id" FROM "auths" WHERE "auths"."username" = $1 AND "auths"."password" = $2 ORDER BY "auths"."id" LIMIT 1' with args [{Name: Ordinal:1 Value:user1} {Name: Ordinal:2 Value:password}]
-	// SELECT "id" FROM "auths" WHERE "auths"."username" = 'user1' AND "auths"."password" = 'password' ORDER BY "auths"."id" LIMIT 1
 	mock.ExpectQuery("^SELECT (.+) FROM (.*)").WillReturnRows(userRow)
-	//prep := mock.ExpectPrepare(`INSERT INTO \"auths.*`)
-	//prep.ExpectExec() //.WithArgs("{Name: Ordinal:1 Value:User}", "{Name: Ordinal:2 Value:Pw}").WillReturnResult(sqlmock.NewResult(1, 1))
-
-	//	err = createUser(gdb)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-
 }
 
+/*
 func createUser(db *gorm.DB) error {
 	user := models.Auth{
 		ID:       0,
@@ -89,6 +76,7 @@ func createUser(db *gorm.DB) error {
 
 	return nil
 }
+*/
 
 func TestServer(t *testing.T) {
 
@@ -101,17 +89,12 @@ func TestServer(t *testing.T) {
 		isForm             bool
 	}{
 		/*		{
-					url:                "/api/v1/projects",
-					method:             "GET",
-					expectedHTTPStatus: http.StatusOK,
-					expectedMessage:    `{"Message":"Worker huhu started"}`,
-				},
-				{
-					url:                "/index.html",
-					method:             "GET",
-					expectedHTTPStatus: http.StatusOK,
-					expectedMessage:    `<html>...`,
-				},*/
+				url:                "/api/v1/projects",
+				method:             "GET",
+				expectedHTTPStatus: http.StatusOK,
+				expectedMessage:    `{"Message":"Worker huhu started"}`,
+			},*/
+
 		{
 			url:                "/auth",
 			method:             "POST",
@@ -120,13 +103,21 @@ func TestServer(t *testing.T) {
 			expectedMessage:    `<html>...`,
 			isForm:             true,
 		},
+		{
+			url:                "/",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
+			expectedMessage:    `<html>...`,
+			body:               nil,
+			isForm:             false,
+		},
+
 	}
 
 	ts := httptest.NewServer(InitRouter())
 
 	// Shut down the server and block until all requests have gone through
 	defer ts.Close()
-	fmt.Println(ts.URL)
 
 	for _, tt := range tests {
 
@@ -167,11 +158,6 @@ func TestServer(t *testing.T) {
 		if resp.StatusCode != tt.expectedHTTPStatus {
 			t.Error("Did not get expected HTTP status code, got", resp.StatusCode)
 		}
-
-		/*if strings.TrimRight(w.Body.String(), "\n") != tt.expectedMessage {
-			t.Error("Did not get expected message, got", w.Body.String())
-		}
-		*/
 
 		err = mock.ExpectationsWereMet()
 		assert.Nil(t, err)

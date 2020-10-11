@@ -83,7 +83,7 @@
                 - -c
                 - |
                   cd go-tumbo-git/web/elm
-                  elm make src/Main.elm
+                  elm make src/Main.elm --output ../app.js
   
     - name: build-and-push
       plan:
