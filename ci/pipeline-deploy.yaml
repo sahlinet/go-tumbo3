@@ -1,16 +1,39 @@
 ---
-#  resources:
+resources:
 #    - name: go-tumbo-git
 #      type: git
 #      icon: github
 #      source:
 #        uri: https://github.com/sahlinet/go-tumbo3.git
 #
-#    - name: go-tumbo-image
-#      type: registry-image
-#      icon: docker
-#      source:
-#        repository: philipsahli/go-tumbo
-#        username: ((docker.username))
-#        password: ((docker.password))
-#
+    - name: go-tumbo-image
+      type: registry-image
+      icon: docker
+      source:
+        repository: philipsahli/go-tumbo
+        username: ((docker.username))
+        password: ((docker.password))
+
+    - name: my-cluster
+      type: concourse-kubectl-resource-type
+      source:
+        api_server_uri: ((api.server))
+        namespace: tumbo-dev
+        certificate_authority_data: ((api.cad))
+        token: ((api.token))
+
+resource_types:
+  - name: concourse-kubectl-resource-type
+    type: docker-image
+    source:
+      repository: jmkarthik/concourse-kubectl-resource
+      tag: latest
+
+jobs:
+  - name: deploy
+    plan:
+    - get: go-tumbo-image
+      trigger: true
+    - put: my-cluster
+      params:
+        file: "deployments/my-yaml.yaml"
