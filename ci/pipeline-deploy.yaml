@@ -33,7 +33,6 @@ jobs:
   - name: deploy
     plan:
     - get: go-tumbo-git
-      trigger: true
     - get: go-tumbo-image
       trigger: true
     - put: my-cluster
