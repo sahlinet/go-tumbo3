@@ -5,3 +5,24 @@ metadata:
   name: tumbo-dev
   labels:
     name: tumbo-dev
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: tumbo-server
+  namespace: tumbo-dev
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: tumbo-server
+    spec:
+      containers:
+      - name: tumbo-server
+        image: philipsahli/tumbo-server:latest
+        ports:
+        - containerPort: 8000
