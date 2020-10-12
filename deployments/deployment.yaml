@@ -1,12 +1,5 @@
 ---
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: tumbo-dev
-  labels:
-    name: tumbo-dev
----
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: tumbo-server
@@ -15,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: tumbo-server
-  replicas: 2 # tells deployment to run 2 pods matching the template
+  replicas: 2
   template:
     metadata:
       labels:
@@ -26,3 +19,11 @@ spec:
         image: philipsahli/go-tumbo:latest
         ports:
         - containerPort: 8000
+        volumeMounts:
+          - name: tumbo-config-volume
+            mountPath: /etc/tumbo
+      volumes:
+        - name: tumbo-config-volume
+          configMap:
+            name: tumbo-config
+

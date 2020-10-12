@@ -1,10 +1,10 @@
 package setting
 
 import (
-	"log"
 	"time"
 
 	"github.com/go-ini/ini"
+	log "github.com/sirupsen/logrus"
 )
 
 type App struct {
@@ -62,10 +62,36 @@ var RedisSetting = &Redis{}
 
 var cfg *ini.File
 
+func loadIni() (*ini.File, error) {
+	var err error
+	// Check for global ini file
+	cfg, err = ini.Load("/etc/tumbo/app.ini")
+	if err != nil {
+		log.Fatal("setting.Setup, failed to open global ini file")
+		return nil, err
+	}
+
+	if cfg != nil {
+		log.Info("Config loaded from /etc/tumbo/app.ini")
+		return cfg, nil
+	}
+
+	// if /etc/tumbo/conf/app.ini is not found, use the local instance.
+	cfg, err = ini.Load("conf/app.ini")
+	if err != nil {
+		log.Fatalf("setting.Setup, fail to parse 'conf/app.ini': %v", err)
+		return nil, err
+	}
+
+	return cfg, nil
+
+}
+
 // Setup initialize the configuration instance
 func Setup() {
 	var err error
-	cfg, err = ini.Load("conf/app.ini")
+
+	cfg, err = loadIni()
 	if err != nil {
 		log.Fatalf("setting.Setup, fail to parse 'conf/app.ini': %v", err)
 	}

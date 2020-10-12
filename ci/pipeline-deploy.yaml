@@ -37,4 +37,4 @@ jobs:
       trigger: true
     - put: my-cluster
       params:
-        file: "go-tumbo-git/deployments/my-yaml.yaml"
+        file: "go-tumbo-git/deployments/"
