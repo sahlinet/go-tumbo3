@@ -44,6 +44,7 @@ type Database struct {
 	User        string
 	Password    string
 	Host        string
+	Port        string
 	Name        string
 	TablePrefix string
 }
@@ -67,8 +68,7 @@ func loadIni() (*ini.File, error) {
 	// Check for global ini file
 	cfg, err = ini.Load("/etc/tumbo/app.ini")
 	if err != nil {
-		log.Fatal("setting.Setup, failed to open global ini file")
-		return nil, err
+		log.Warn("setting.Setup, failed to open global ini file")
 	}
 
 	if cfg != nil {

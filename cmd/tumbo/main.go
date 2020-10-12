@@ -19,8 +19,16 @@ import (
 
 func init() {
 
+	setting.Setup()
+
 	var err error
-	dsn := "user=postgres password=mysecretpassword dbname=postgres host=localhost port=5432 sslmode=disable TimeZone=Europe/Zurich"
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable TimeZone=Europe/Zurich",
+		setting.DatabaseSetting.User,
+		setting.DatabaseSetting.Password,
+		setting.DatabaseSetting.Name,
+		setting.DatabaseSetting.Host,
+		setting.DatabaseSetting.Port)
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -29,7 +37,6 @@ func init() {
 
 	repository := &models.Repository{Db: db}
 
-	setting.Setup()
 	models.Setup(repository)
 	//	logging.Setup()
 	gredis.Setup()
