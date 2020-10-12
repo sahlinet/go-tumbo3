@@ -66,13 +66,13 @@ var cfg *ini.File
 func loadIni() (*ini.File, error) {
 	var err error
 	// Check for global ini file
-	cfg, err = ini.Load("/etc/tumbo/app.ini")
+	cfg, err = ini.Load("/etc/tumbo/tumbo.ini")
 	if err != nil {
 		log.Warn("setting.Setup, failed to open global ini file")
 	}
 
 	if cfg != nil {
-		log.Info("Config loaded from /etc/tumbo/app.ini")
+		log.Info("Config loaded from /etc/tumbo/tumbo.ini")
 		return cfg, nil
 	}
 
