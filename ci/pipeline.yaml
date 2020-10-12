@@ -104,6 +104,10 @@
                   export CGO_ENABLED=0
                   cp -rp go-tumbo-git go-tumbo-git-updated
                   cd go-tumbo-git-updated/go-tumbo-git
+
+                  go get github.com/GeertJohan/go.rice
+                  go get github.com/GeertJohan/go.rice/rice
+
                   go generate ./...
                   go build -o build/tumbo ./cmd/tumbo 
             outputs:
