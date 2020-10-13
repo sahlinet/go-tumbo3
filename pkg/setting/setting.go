@@ -47,10 +47,13 @@ type Database struct {
 	Host        string
 	Port        string
 	Name        string
+	SslMode     string
 	TablePrefix string
 }
 
-var DatabaseSetting = &Database{}
+var DatabaseSetting = &Database{
+	SslMode: "require",
+}
 
 type Redis struct {
 	Host        string

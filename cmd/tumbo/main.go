@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"gorm.io/driver/postgres"
 	"log"
 	"net/http"
+
+	"gorm.io/driver/postgres"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -16,18 +17,18 @@ import (
 	"github.com/sahlinet/go-tumbo/routers"
 )
 
-
 func init() {
 
 	setting.Setup()
 
 	var err error
-	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=disable TimeZone=Europe/Zurich",
+	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=%s TimeZone=Europe/Zurich",
 		setting.DatabaseSetting.User,
 		setting.DatabaseSetting.Password,
 		setting.DatabaseSetting.Name,
 		setting.DatabaseSetting.Host,
-		setting.DatabaseSetting.Port)
+		setting.DatabaseSetting.Port,
+		setting.DatabaseSetting.SslMode)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
