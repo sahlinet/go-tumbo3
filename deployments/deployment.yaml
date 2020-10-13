@@ -11,6 +11,8 @@ spec:
   replicas: 2
   template:
     metadata:
+      annotations:
+        version: develop
       labels:
         app: tumbo-server
     spec:
