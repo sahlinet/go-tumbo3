@@ -97,7 +97,7 @@ func Getprojects(c *gin.Context) {
 
 	projects, err := projectservice.GetAll()
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_GET_projects_FAIL, nil)
+		appG.Response(http.StatusInternalServerError, e.ERROR_GET_PROJECT_FAIL, nil)
 		return
 	}
 

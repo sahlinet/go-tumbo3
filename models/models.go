@@ -31,7 +31,12 @@ func Setup(repository *Repository) *gorm.DB {
 	}
 
 	db.Table("projects").AutoMigrate(&Project{})
-	db.Table("auths").AutoMigrate(&Auth{})
+	err = db.Table("auths").AutoMigrate(&Auth{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	createAdminUser()
 
 	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 	//		return setting.DatabaseSetting.TablePrefix + defaultTableName
@@ -45,6 +50,26 @@ func Setup(repository *Repository) *gorm.DB {
 	//	db.DB().SetMaxOpenConns(100)
 
 	return db
+}
+
+func createAdminUser() {
+	adminUser := Auth{
+		Username: "admin",
+		Password: "mysecretpassword",
+	}
+
+	if exists, err := adminUser.Exists(); !exists {
+		if err != nil {
+			log.Warn("Could not query adminUser: ", err)
+		}
+		err := adminUser.Create()
+		if err != nil {
+			log.Fatal("Could not create adminUser: ", err)
+		}
+		log.Info("adminUser created.")
+	}
+	log.Info("adminUser exists.")
+
 }
 
 // CloseDB closes database connection (unnecessary)

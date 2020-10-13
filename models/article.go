@@ -34,9 +34,9 @@ func ExistArticleByID(id int) (bool, error) {
 }
 
 // GetArticleTotal gets the total number of projects based on the constraints
-func GetArticleTotal(maps interface{}) (int64, error) {
+func GetArticleTotal() (int64, error) {
 	var count int64
-	if err := db.Model(&Project{}).Where(maps).Count(&count).Error; err != nil {
+	if err := db.Model(&Project{}).Count(&count).Error; err != nil {
 		return 0, err
 	}
 
@@ -44,9 +44,9 @@ func GetArticleTotal(maps interface{}) (int64, error) {
 }
 
 // GetProjects gets a list of projects based on paging constraints
-func GetProjects(pageNum int, pageSize int, maps interface{}) ([]*Project, error) {
+func GetProjects(pageNum int, pageSize int) ([]*Project, error) {
 	var projects []*Project
-	err := db.Preload("Tag").Where(maps).Offset(pageNum).Limit(pageSize).Find(&projects).Error
+	err := db.Offset(pageNum).Limit(pageSize).Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
