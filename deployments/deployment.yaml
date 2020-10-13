@@ -43,8 +43,13 @@ spec:
               secretKeyRef:
                 name: tumbo-db
                 key: DB_PASSWORD
-        volumes:
-        - name: tumbo-config-volume
-          configMap:
-            name: tumbo-config
+          - name: DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: tumbo-db
+                key: DB_NAME
+      volumes:
+      - name: tumbo-config-volume
+        configMap:
+          name: tumbo-config
 
