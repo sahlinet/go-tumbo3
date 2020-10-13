@@ -22,7 +22,28 @@ spec:
         volumeMounts:
           - name: tumbo-config-volume
             mountPath: /etc/tumbo
-      volumes:
+        env:
+          - name: DB_HOST
+            valueFrom:
+              secretKeyRef:
+                name: tumbo-db
+                key: DB_HOST
+          - name: DB_PORT
+            valueFrom:
+              secretKeyRef:
+                name: tumbo-db
+                key: DB_PORT
+          - name: DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: tumbo-db
+                key: DB_USERNAME
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: tumbo-db
+                key: DB_PASSWORD
+        volumes:
         - name: tumbo-config-volume
           configMap:
             name: tumbo-config

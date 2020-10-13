@@ -1,6 +1,7 @@
 package setting
 
 import (
+	"os"
 	"time"
 
 	"github.com/go-ini/ini"
@@ -100,6 +101,23 @@ func Setup() {
 	mapTo("server", ServerSetting)
 	mapTo("database", DatabaseSetting)
 	mapTo("redis", RedisSetting)
+
+	// Overwrite settings from ini file
+	if e := os.Getenv("DB_HOST"); e != "" {
+		DatabaseSetting.Host = e
+	}
+
+	if e := os.Getenv("DB_PORT"); e != "" {
+		DatabaseSetting.Port = e
+	}
+
+	if e := os.Getenv("DB_USERNAME"); e != "" {
+		DatabaseSetting.User = e
+	}
+
+	if e := os.Getenv("DB_PASSWORD"); e != "" {
+		DatabaseSetting.Password = e
+	}
 
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second
