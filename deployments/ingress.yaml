@@ -1,0 +1,59 @@
+---
+# Redirect to https
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: redirectscheme
+  namespace: tumbo-dev
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tumbo-server-service
+  namespace: tumbo-dev
+spec:
+  selector:
+    app: tumbo-server
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tumbo-server-ingressroute
+  namespace: tumbo-dev
+spec:
+  entryPoints:
+    - web
+  routes:
+  - match: Host(`dev.tumbo.io`)
+    kind: Rule
+    services:
+    - name: tumbo-server-service
+      port: 8000
+    middlewares:                  
+    - name: redirectscheme          
+      namespace: tumbo-dev        
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: tumbo-server-ingressroute-tls
+  namespace: tumbo-dev
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`dev.tumbo.io`)
+    kind: Rule
+    services:
+    - name: tumbo-server-service
+      port: 8000
+  tls:
+    certResolver: myresolver
