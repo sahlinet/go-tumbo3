@@ -43,7 +43,7 @@
   
           go vet ./...
           go test -v ./...
-  
+
   jobs:
     - name: unittest
       public: true
