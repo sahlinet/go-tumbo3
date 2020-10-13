@@ -119,6 +119,10 @@ func Setup() {
 		DatabaseSetting.Password = e
 	}
 
+	if e := os.Getenv("DB_NAME"); e != "" {
+		DatabaseSetting.Name = e
+	}
+
 	AppSetting.ImageMaxSize = AppSetting.ImageMaxSize * 1024 * 1024
 	ServerSetting.ReadTimeout = ServerSetting.ReadTimeout * time.Second
 	ServerSetting.WriteTimeout = ServerSetting.WriteTimeout * time.Second
