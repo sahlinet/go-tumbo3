@@ -30,6 +30,9 @@ func Setup(repository *Repository) *gorm.DB {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
+	db.Table("projects").AutoMigrate(&Project{})
+	db.Table("auths").AutoMigrate(&Auth{})
+
 	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 	//		return setting.DatabaseSetting.TablePrefix + defaultTableName
 	//	}
@@ -38,7 +41,7 @@ func Setup(repository *Repository) *gorm.DB {
 	//	db.Callback().Create().Replace("gorm:update_time_stamp", updateTimeStampForCreateCallback)
 	//	db.Callback().Update().Replace("gorm:update_time_stamp", updateTimeStampForUpdateCallback)
 	//	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
-	//	db.DB().SetMaxIdleConns(10)
+	//		db.DB().SetMaxIdleConns(10)
 	//	db.DB().SetMaxOpenConns(100)
 
 	return db
