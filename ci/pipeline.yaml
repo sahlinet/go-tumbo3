@@ -63,6 +63,7 @@
                   cd go-tumbo-git
                   go vet ./...
                   go test -v ./...
+                  echo $?
     - name: web
       public: true
       plan:
