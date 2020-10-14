@@ -39,6 +39,7 @@
       args:
         - -c
         - |
+          set -e
           cd go/go-tumbo3
   
           go vet ./...
@@ -60,6 +61,7 @@
               args:
                 - -c
                 - |
+                  set -e 
                   cd go-tumbo-git
                   go vet ./...
                   go test -v ./...
@@ -83,6 +85,7 @@
               args:
                 - -c
                 - |
+                  set -e
                   cd go-tumbo-git/web/elm
                   elm make src/Main.elm --output ../app.js
   
@@ -102,6 +105,7 @@
               args:
                 - -c
                 - |
+                  set -e
                   export CGO_ENABLED=0
                   cp -rp go-tumbo-git go-tumbo-git-updated
                   cd go-tumbo-git-updated/go-tumbo-git
