@@ -5,17 +5,18 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/DATA-DOG/go-sqlmock"
-	log "github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 
-	"github.com/sahlinet/go-tumbo/models"
+	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/sqlite"
+
 	"gorm.io/gorm"
+
+	"github.com/sahlinet/go-tumbo/models"
 )
 
 /*func init() {
@@ -27,44 +28,31 @@ import (
 }
 */
 
-var mock sqlmock.Sqlmock
 var db *sql.DB
 var err error
 
 func init() {
-	db, mock, err = sqlmock.New() // mock sql.DB
+
+	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dialector := postgres.New(postgres.Config{
-		DSN:                  "sqlmock_db_0",
-		DriverName:           "postgres",
-		Conn:                 db,
-		PreferSimpleProtocol: true,
-	})
-
-	gdb, err := gorm.Open(dialector, &gorm.Config{}) // open gorm db
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	repository := &models.Repository{Db: gdb}
+	repository := &models.Repository{Db: db}
 	models.Setup(repository)
 
-	userRow := sqlmock.NewRows([]string{"id", "username", "password"}).
-		AddRow(1, "user1", "password")
-	log.Info(userRow)
+	err = createUser(db)
+	if err != nil {
+		log.Fatal("could not create user", err)
+	}
 
-	mock.ExpectQuery("^SELECT (.+) FROM (.*)").WillReturnRows(userRow)
 }
 
-/*
 func createUser(db *gorm.DB) error {
 	user := models.Auth{
 		ID:       0,
-		Username: "User",
-		Password: "Pw",
+		Username: "user1",
+		Password: "password",
 	}
 
 	tx := db.Create(&user)
@@ -76,7 +64,6 @@ func createUser(db *gorm.DB) error {
 
 	return nil
 }
-*/
 
 func TestServer(t *testing.T) {
 
@@ -111,7 +98,6 @@ func TestServer(t *testing.T) {
 			body:               nil,
 			isForm:             false,
 		},
-
 	}
 
 	ts := httptest.NewServer(InitRouter())
@@ -159,7 +145,6 @@ func TestServer(t *testing.T) {
 			t.Error("Did not get expected HTTP status code, got", resp.StatusCode)
 		}
 
-		err = mock.ExpectationsWereMet()
 		assert.Nil(t, err)
 	}
 
