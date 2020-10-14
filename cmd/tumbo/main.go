@@ -10,11 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/sahlinet/go-tumbo/models"
-	"github.com/sahlinet/go-tumbo/pkg/gredis"
-	"github.com/sahlinet/go-tumbo/pkg/setting"
-	"github.com/sahlinet/go-tumbo/pkg/util"
-	"github.com/sahlinet/go-tumbo/routers"
+	"github.com/sahlinet/go-tumbo/internal/gredis"
+	"github.com/sahlinet/go-tumbo/internal/pkg/models"
+	"github.com/sahlinet/go-tumbo/internal/pkg/routers"
+	"github.com/sahlinet/go-tumbo/internal/setting"
+	"github.com/sahlinet/go-tumbo/internal/util"
 )
 
 func init() {
