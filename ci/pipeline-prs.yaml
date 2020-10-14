@@ -1,0 +1,86 @@
+---
+resource_types:
+  - name: pull-request
+    type: registry-image
+    source: { repository: teliaoss/github-pr-resource }
+
+resources:
+  - name: go-tumbo3-master
+    type: git
+    icon: github
+    source:
+      uri: https://github.com/concourse/concourse
+
+  - name: go-tumbo3-pr
+    type: pull-request
+    icon: source-pull
+    source:
+      repository: sahlinet/go-tumbo3
+      access_token: ((github-access.token))
+
+  - name: golang-1.14.x-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: golang
+      tag: 1.14-stretch
+
+task-config: &task-config
+  platform: linux
+  inputs:
+    - name: go-tumbo3-pr
+  params:
+    GO111MODULE: "on"
+  run:
+    path: /bin/sh
+    args:
+      - -c
+      - |
+        cd go/go-tumbo3
+
+        go vet ./...
+        go test -v ./...
+jobs:
+  - name: unit
+    public: true
+    max_in_flight: 3
+    on_failure:
+      put: go-tumbo3-pr
+      inputs: [go-tumbo3-pr]
+      params: { path: go-tumbo3-pr, status: failure, context: unit }
+
+      get_params: { skip_download: true }
+    on_success:
+      put: go-tumbo3-pr
+      inputs: [go-tumbo3-pr]
+      params: { path: go-tumbo3-pr, status: success, context: unit }
+      get_params: { skip_download: true }
+    plan:
+      - in_parallel:
+          - get: go-tumbo3-pr
+            trigger: true
+            version: every
+          - get: go-tumbo3-master
+          - get: golang-1.14.x-image
+      - put: concourse-status-update-pending
+        resource: go-tumbo3-pr
+        inputs: [go-tumbo3-pr]
+        params: { path: go-tumbo3-pr, status: pending, context: unit }
+        get_params: { list_changed_files: true, skip_download: true }
+
+      - task: unit
+        attempts: 1
+        timeout: 30m
+        image: golang-1.14.x-image
+        config:
+          <<: *task-config
+          run:
+            path: /bin/sh
+            args:
+              - -c
+              - |
+                set -e
+                cd go-tumbo3-pr
+                go vet ./...
+                go test -v ./...
+                echo $?
