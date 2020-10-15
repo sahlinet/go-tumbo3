@@ -1,8 +1,13 @@
 ---
 resource_types:
-  - name: pull-request
-    type: registry-image
-    source: { repository: teliaoss/github-pr-resource }
+- name: pull-request
+  type: registry-image
+  source: { repository: teliaoss/github-pr-resource }
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
 
 resources:
   - name: go-tumbo3-master
@@ -24,6 +29,12 @@ resources:
     source:
       repository: golang
       tag: 1.14-stretch
+
+  - name: notify
+    type: slack-notification
+    source:
+      url: ((slack-webhook.webhook))
+
 
 task-config: &task-config
   platform: linux
@@ -84,3 +95,15 @@ jobs:
                 go vet ./...
                 go test -v ./...
                 echo $?
+        on_failure:
+          put: notify
+          params:
+            text: |
+               The pipeline $BUILD_PIPELINE_NAME has failed, check:
+               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        on_success:
+          put: notify
+          params:
+            text: |
+               The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
+               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
