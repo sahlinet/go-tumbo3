@@ -20,7 +20,7 @@ import FontAwesome.Styles as Icon
 import FontAwesome.Svg as SvgIcon
 import FontAwesome.Transforms as Icon
 import Html exposing (..)
-import Html.Attributes exposing (class, href, rel, style)
+import Html.Attributes exposing (class, href, rel, style, target)
 import Html.Parser
 import Html.Parser.Util
 import Spa.Document exposing (Document)
@@ -186,7 +186,7 @@ view { page, toMsg } model =
             [ class "layout" ]
             [ header [ class "navbar" ]
                 [ a [ class "navbar-brand", href (Route.toString Route.Top), style "color" "#FF5733" ] [ text "Tumbo" ]
-                , a [ href "https://github.com/sahlinet/go-tumbo3" ] [ i [ class "fa fa-github", style "color" "black" ] [] ]
+                , a [ target "blank", href "https://github.com/sahlinet/go-tumbo3" ] [ i [ class "fa fa-github", style "color" "black" ] [] ]
                 ]
             , div [ class "jumbotron" ] [ text slogan ]
             , div [ class "page" ] page.body
