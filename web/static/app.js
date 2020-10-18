@@ -7359,6 +7359,7 @@ var $rundis$elm_bootstrap$Bootstrap$CDN$stylesheet = A3(
 			$elm$html$Html$Attributes$href('https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css')
 		]),
 	_List_Nil);
+var $elm$html$Html$Attributes$target = $elm$html$Html$Attributes$stringProperty('target');
 var $elm$core$String$append = _String_append;
 var $author$project$Spa$Generated$Route$toString = function (route) {
 	var segments = function () {
@@ -7428,6 +7429,7 @@ var $author$project$Shared$view = F2(
 									$elm$html$Html$a,
 									_List_fromArray(
 										[
+											$elm$html$Html$Attributes$target('blank'),
 											$elm$html$Html$Attributes$href('https://github.com/sahlinet/go-tumbo3')
 										]),
 									_List_fromArray(

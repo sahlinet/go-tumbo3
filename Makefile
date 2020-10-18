@@ -9,6 +9,9 @@ build: elm
 	@go generate ./...
 	@go build -v ./cmd/tumbo
 
+test: build
+	@go test ./...
+
 run: build
 	@go run ./cmd/tumbo	
 
