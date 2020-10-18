@@ -87,14 +87,19 @@ func TestServer(t *testing.T) {
 			method:             "POST",
 			body:               []string{"user1", "password"},
 			expectedHTTPStatus: http.StatusOK,
-			expectedMessage:    `<html>...`,
 			isForm:             true,
 		},
 		{
 			url:                "/",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
-			expectedMessage:    `<html>...`,
+			body:               nil,
+			isForm:             false,
+		},
+		{
+			url:                "/static/app.js",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
 			body:               nil,
 			isForm:             false,
 		},
@@ -106,46 +111,49 @@ func TestServer(t *testing.T) {
 	defer ts.Close()
 
 	for _, tt := range tests {
+		t.Run(tt.url, func(t *testing.T) {
 
-		reqBody, err := json.Marshal(tt.body)
-		if err != nil {
-			print(err)
-		}
-
-		var resp *http.Response
-
-		if tt.isForm {
-
-			resp, err = http.PostForm(fmt.Sprintf("%s%s", ts.URL, tt.url), url.Values{
-				"username": {"user1"},
-				"password": {"password"}})
-
-			//okay, moving on...
+			reqBody, err := json.Marshal(tt.body)
 			if err != nil {
-				t.Fatal(err, resp)
+				print(err)
 			}
 
-		}
+			var resp *http.Response
 
-		if !tt.isForm {
+			if tt.isForm {
 
-			req, err := http.NewRequest(tt.method, fmt.Sprintf("%s%s", ts.URL, tt.url), bytes.NewBuffer(reqBody))
-			if err != nil {
-				t.Error("http.NewRequest err", err)
+				resp, err = http.PostForm(fmt.Sprintf("%s%s", ts.URL, tt.url), url.Values{
+					"username": {"user1"},
+					"password": {"password"}})
+
+				//okay, moving on...
+				if err != nil {
+					t.Fatal(err, resp)
+				}
+
 			}
-			client := http.Client{}
-			resp, err = client.Do(req)
-			if err != nil {
-				t.Error("client.Do err", err)
+
+			if !tt.isForm {
+
+				req, err := http.NewRequest(tt.method, fmt.Sprintf("%s%s", ts.URL, tt.url), bytes.NewBuffer(reqBody))
+				if err != nil {
+					t.Error("http.NewRequest err", err)
+				}
+				client := http.Client{}
+				resp, err = client.Do(req)
+				if err != nil {
+					t.Error("client.Do err", err)
+				}
+
 			}
 
-		}
+			if resp.StatusCode != tt.expectedHTTPStatus {
+				t.Errorf("Did not get expected HTTP status code %b, got %b", tt.expectedHTTPStatus, resp.StatusCode)
+			}
 
-		if resp.StatusCode != tt.expectedHTTPStatus {
-			t.Error("Did not get expected HTTP status code, got", resp.StatusCode)
-		}
+			assert.Nil(t, err)
 
-		assert.Nil(t, err)
+		})
 	}
 
 }

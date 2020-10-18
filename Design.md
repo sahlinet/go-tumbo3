@@ -81,9 +81,17 @@ They receive the same permissions, except they cannot change the team.
 
 ### Implementation
 
+elm-spa
+
 #### Elm
 
-Frontend Framework:  https://elm-lang.org/ - Component Framework: https://elm-ui.netlify.app/
+Frontend Framework:  https://elm-lang.org/ - Component Framework: debois/elm-mdl
+
+https://github.com/debois/elm-mdl -> not compatible with ELM 0.19
+http://elm-bootstrap.info/
+https://github.com/chrisUsick/elm-spa-mdl-boilerplate
+
+Colors: https://package.elm-lang.org/packages/smucode/elm-flat-colors/latest/
 
 #### Minify
 

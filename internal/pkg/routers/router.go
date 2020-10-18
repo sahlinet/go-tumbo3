@@ -25,7 +25,7 @@ func StaticFile(c *gin.Context) {
 		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
 	}
 
-	box, err := conf.FindBox("../web/static")
+	box, err := conf.FindBox("../../../web/static")
 
 	if err != nil {
 		log.Fatalf("error opening rice.Box: %s\n", err)
