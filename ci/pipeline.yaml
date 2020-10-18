@@ -87,7 +87,6 @@ jobs:
               - |
                 set -e
                 cd go-tumbo-git/web/elm
-                elm-spa build
                 elm make src/Main.elm --output ../static/app.js
 
   - name: build-and-push
