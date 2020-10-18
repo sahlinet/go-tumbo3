@@ -2,8 +2,15 @@
 
 all: build
 
-build:
-	@go build -v .
+elm:
+	cd web/elm && elm make src/Main.elm --output ../static/app.js
+
+build: elm
+	@go generate ./...
+	@go build -v ./cmd/tumbo
+
+run: build
+	@go run ./cmd/tumbo	
 
 tool:
 	go vet ./...; true
