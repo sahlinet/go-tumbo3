@@ -3,7 +3,7 @@
 all: build
 
 elm:
-	cd web/elm && elm make src/Main.elm --output ../static/app.js
+	cd web/elm && elm make src/Main.elm --optimize
 
 build: elm
 	@go generate ./...

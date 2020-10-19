@@ -97,7 +97,7 @@ func TestServer(t *testing.T) {
 			isForm:             false,
 		},
 		{
-			url:                "/static/app.js",
+			url:                "/dist/elm.compiled.js",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
 			body:               nil,

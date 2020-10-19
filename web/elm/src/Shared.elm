@@ -191,7 +191,9 @@ view { page, toMsg } model =
             , div [ class "jumbotron" ] [ text slogan ]
             , div [ class "page" ] page.body
             ]
-        , Html.footer [ class "footer" ] [ div [ class "container" ] [ span [ class "text-muted" ] [ text "Sticky Footer" ] ] ]
+        , Html.footer [ class "footer" ] [ div [ class "container text-center" ] [ span [ class "text-muted" ] [ 
+            text "© 2020 Copyright sahli.net" 
+          ] ] ]
         ]
     }
 

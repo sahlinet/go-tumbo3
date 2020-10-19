@@ -25,7 +25,7 @@ func StaticFile(c *gin.Context) {
 		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
 	}
 
-	box, err := conf.FindBox("../../../web/static")
+	box, err := conf.FindBox("../../../web/elm/public")
 
 	if err != nil {
 		log.Fatalf("error opening rice.Box: %s\n", err)
@@ -40,21 +40,46 @@ func StaticFile(c *gin.Context) {
 	p := c.Request.URL.Path[1:]
 
 	log.Info("Trying to load ", p)
-	if strings.HasPrefix(p, "static") {
+	if strings.HasSuffix(p, "dist/elm.compiled.js") {
 		//l = filepath.Base(p)
-		l = filepath.Base("app.js")
+		//		l = filepath.Base("dist/elm.compiled.js")
 		c.Writer.Header().Set("Content-Type", "text/javascript")
+		contentString, err := box.String(p)
+		if err != nil {
+			c.String(404, "not found")
+		}
+		c.String(200, contentString)
+		return
+	}
+
+	if strings.HasSuffix(p, "main.js") {
+		c.Writer.Header().Set("Content-Type", "text/javascript")
+		contentString, err := box.String(p)
+		if err != nil {
+			c.String(404, "not found")
+		}
+		c.String(200, contentString)
+		return
+	}
+
+	if strings.HasSuffix(p, ".css") {
+		//l = filepath.Base(p)
+		l = filepath.Base("style.css")
+		c.Writer.Header().Set("Content-Type", "text/css")
 	}
 
 	if l == "" {
 		c.String(404, "not found")
+		return
 	}
 
 	log.Info("Trying to load ", l)
 
 	contentString, err := box.String(l)
 	if err != nil {
-		log.Fatalf("could not read file contents as string: %s\n", err)
+		log.Errorf("could not read file contents as string: %s\n", err)
+		c.String(404, "not found")
+		return
 	}
 
 	c.String(200, contentString)
@@ -79,7 +104,9 @@ func InitRouter() *gin.Engine {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	r.GET("/", StaticFile)
-	r.GET("/static/*js", StaticFile)
+	r.GET("/style.css", StaticFile)
+	r.GET("/main.js", StaticFile)
+	r.GET("/dist/elm.compiled.js", StaticFile)
 	r.GET("/version", Version)
 
 	apiv1 := r.Group("/api/v1")
