@@ -41,10 +41,10 @@ func StaticFile(c *gin.Context) {
 
 	log.Info("Trying to load ", p)
 	if strings.HasSuffix(p, "dist/elm.compiled.js") {
-		//l = filepath.Base(p)
+		l = filepath.Base(p)
 		//		l = filepath.Base("dist/elm.compiled.js")
 		c.Writer.Header().Set("Content-Type", "text/javascript")
-		contentString, err := box.String(p)
+		contentString, err := box.String("dist/elm.compiled.js")
 		if err != nil {
 			log.Error(err)
 			c.String(404, "not found")
