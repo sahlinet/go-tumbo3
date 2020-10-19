@@ -46,7 +46,9 @@ func StaticFile(c *gin.Context) {
 		c.Writer.Header().Set("Content-Type", "text/javascript")
 		contentString, err := box.String(p)
 		if err != nil {
+			log.Error(err)
 			c.String(404, "not found")
+			return
 		}
 		c.String(200, contentString)
 		return
@@ -57,6 +59,7 @@ func StaticFile(c *gin.Context) {
 		contentString, err := box.String(p)
 		if err != nil {
 			c.String(404, "not found")
+			return
 		}
 		c.String(200, contentString)
 		return
