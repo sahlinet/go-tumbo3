@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/sahlinet/go-tumbo/internal/e"
+	"github.com/sahlinet/go-tumbo3/internal/e"
 )
 
 type Gin struct {

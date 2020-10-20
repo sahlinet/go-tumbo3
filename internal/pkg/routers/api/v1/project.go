@@ -7,11 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/unknwon/com"
 
-	"github.com/sahlinet/go-tumbo/internal/app"
-	"github.com/sahlinet/go-tumbo/internal/e"
-	"github.com/sahlinet/go-tumbo/internal/service/project_service"
-	"github.com/sahlinet/go-tumbo/internal/setting"
-	"github.com/sahlinet/go-tumbo/internal/util"
+	"github.com/sahlinet/go-tumbo3/internal/app"
+	"github.com/sahlinet/go-tumbo3/internal/e"
+	"github.com/sahlinet/go-tumbo3/internal/service/project_service"
+	"github.com/sahlinet/go-tumbo3/internal/setting"
+	"github.com/sahlinet/go-tumbo3/internal/util"
 )
 
 // @Summary Get a single project

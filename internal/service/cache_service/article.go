@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/sahlinet/go-tumbo/internal/e"
+	"github.com/sahlinet/go-tumbo3/internal/e"
 )
 
 type Project struct {

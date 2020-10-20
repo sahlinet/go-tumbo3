@@ -13,7 +13,7 @@ info:
   description: Tumbo
   license:
     name: MIT
-    url: https://github.com/sahlinet/go-tumbo/blob/master/LICENSE
+    url: https://github.com/sahlinet/go-tumbo3/blob/master/LICENSE
   termsOfService: https://github.com/sahlinet/go-tumbo
   title: Golang Gin API
   version: "1.0"

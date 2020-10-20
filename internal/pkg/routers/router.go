@@ -12,12 +12,12 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
-	_ "github.com/sahlinet/go-tumbo/docs"
-	"github.com/sahlinet/go-tumbo/pkg/version"
+	_ "github.com/sahlinet/go-tumbo3/docs"
+	"github.com/sahlinet/go-tumbo3/pkg/version"
 
-	"github.com/sahlinet/go-tumbo/internal/middleware/jwt"
-	"github.com/sahlinet/go-tumbo/internal/pkg/routers/api"
-	v1 "github.com/sahlinet/go-tumbo/internal/pkg/routers/api/v1"
+	"github.com/sahlinet/go-tumbo3/internal/middleware/jwt"
+	"github.com/sahlinet/go-tumbo3/internal/pkg/routers/api"
+	v1 "github.com/sahlinet/go-tumbo3/internal/pkg/routers/api/v1"
 )
 
 func StaticFile(c *gin.Context) {

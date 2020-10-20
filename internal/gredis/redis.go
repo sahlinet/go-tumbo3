@@ -6,7 +6,7 @@ import (
 
 	"github.com/gomodule/redigo/redis"
 
-	"github.com/sahlinet/go-tumbo/internal/setting"
+	"github.com/sahlinet/go-tumbo3/internal/setting"
 )
 
 var RedisConn *redis.Pool

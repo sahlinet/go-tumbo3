@@ -1,4 +1,4 @@
-module github.com/sahlinet/go-tumbo
+module github.com/sahlinet/go-tumbo3
 
 go 1.13
 

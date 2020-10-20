@@ -6,9 +6,9 @@ import (
 	"github.com/boombuler/barcode"
 	"github.com/boombuler/barcode/qr"
 
-	"github.com/sahlinet/go-tumbo/internal/file"
-	"github.com/sahlinet/go-tumbo/internal/setting"
-	"github.com/sahlinet/go-tumbo/internal/util"
+	"github.com/sahlinet/go-tumbo3/internal/file"
+	"github.com/sahlinet/go-tumbo3/internal/setting"
+	"github.com/sahlinet/go-tumbo3/internal/util"
 )
 
 type QrCode struct {

@@ -10,11 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/sahlinet/go-tumbo/internal/gredis"
-	"github.com/sahlinet/go-tumbo/internal/pkg/models"
-	"github.com/sahlinet/go-tumbo/internal/pkg/routers"
-	"github.com/sahlinet/go-tumbo/internal/setting"
-	"github.com/sahlinet/go-tumbo/internal/util"
+	"github.com/sahlinet/go-tumbo3/internal/gredis"
+	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
+	"github.com/sahlinet/go-tumbo3/internal/pkg/routers"
+	"github.com/sahlinet/go-tumbo3/internal/setting"
+	"github.com/sahlinet/go-tumbo3/internal/util"
 )
 
 func init() {
@@ -49,7 +49,7 @@ func init() {
 // @description Tumbo
 // @termsOfService https://github.com/sahlinet/go-tumbo
 // @license.name MIT
-// @license.url https://github.com/sahlinet/go-tumbo/blob/master/LICENSE
+// @license.url https://github.com/sahlinet/go-tumbo3/blob/master/LICENSE
 func main() {
 
 	gin.SetMode(setting.ServerSetting.RunMode)

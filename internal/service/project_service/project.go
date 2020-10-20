@@ -5,9 +5,9 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/sahlinet/go-tumbo/internal/gredis"
-	"github.com/sahlinet/go-tumbo/internal/pkg/models"
-	"github.com/sahlinet/go-tumbo/internal/service/cache_service"
+	"github.com/sahlinet/go-tumbo3/internal/gredis"
+	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
+	"github.com/sahlinet/go-tumbo3/internal/service/cache_service"
 )
 
 type Project struct {

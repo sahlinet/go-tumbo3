@@ -6,7 +6,7 @@ import (
 	"github.com/astaxie/beego/validation"
 	"github.com/gin-gonic/gin"
 
-	"github.com/sahlinet/go-tumbo/internal/e"
+	"github.com/sahlinet/go-tumbo3/internal/e"
 )
 
 // BindAndValid binds and validates data

@@ -1,6 +1,6 @@
 package export
 
-import "github.com/sahlinet/go-tumbo/internal/setting"
+import "github.com/sahlinet/go-tumbo3/internal/setting"
 
 const EXT = ".xlsx"
 

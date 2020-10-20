@@ -16,7 +16,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/sahlinet/go-tumbo/internal/pkg/models"
+	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
 )
 
 /*func init() {
