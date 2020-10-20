@@ -19,7 +19,7 @@ type SimpleRunnable struct {
 type Execute func() string
 
 func (r SimpleRunnable) Build() error {
-	cmd := exec.Command("go", "build", "-buildmode=plugin")
+	cmd := exec.Command("/usr/local/bin/go", "build", "-buildmode=plugin")
 	cmd.Dir = r.Location
 	err := cmd.Run()
 	if err != nil {

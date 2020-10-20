@@ -7,7 +7,7 @@ import (
 
 func TestAbs(t *testing.T) {
 	r := SimpleRunnable{
-		Location: "../../../examples/helloworld",
+		Location: "../../../go-tumbo3-examples/examples/helloworld",
 	}
 
 	err := r.Build()
