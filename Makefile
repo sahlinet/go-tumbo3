@@ -8,6 +8,10 @@ elm:
 build: elm
 	@go generate ./...
 	@go build -v ./cmd/tumbo
+	@go build -v ./cmd/runner
+	@go build -v ./cmd/cli
+	cd pkg/runner ; protoc -I proto/ proto/kv.proto --go_out=plugins=grpc:proto/
+	cd pkg/runner ; protoc -I proto/ proto/server.proto --go_out=plugins=grpc:proto/
 
 test: build
 	@go test ./...

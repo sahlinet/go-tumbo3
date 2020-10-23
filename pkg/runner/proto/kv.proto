@@ -1,0 +1,16 @@
+syntax = "proto3";
+package proto;
+
+option go_package = ".;proto";
+
+message TumboRequest {
+    string key = 1;
+}
+
+message TumboResponse {
+    bytes value = 1;
+}
+
+service KV {
+    rpc Execute(TumboRequest) returns (TumboResponse);
+}

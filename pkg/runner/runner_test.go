@@ -1,13 +1,14 @@
 package runner
 
 import (
-	"fmt"
 	"testing"
 )
 
 func TestAbs(t *testing.T) {
 	r := SimpleRunnable{
-		Location: "../../../go-tumbo3-examples/examples/helloworld",
+		Name: "example-plugin-go-grpc",
+		//Location: "../../../go-tumbo3-examples/helloworld",
+		Location: "./example-plugin-go-grpc",
 	}
 
 	err := r.Build()
@@ -15,15 +16,21 @@ func TestAbs(t *testing.T) {
 		t.Error("no error expected", err)
 	}
 
-	fmt.Println(r)
-
-	resp, err := r.Run()
+	err = r.Run()
 	if err != nil {
 		t.Error("no error expected", err)
 	}
 
-	if resp == "" {
-		t.Error("no empty return expected")
+	expectedResponse := "Hello Hello"
+
+	resp, err := r.Execute("Hello")
+	if resp != expectedResponse {
+		t.Errorf("not expected response '%s', was: '%s'", expectedResponse, resp)
+	}
+
+	err = r.Stop()
+	if err != nil {
+		t.Error("Error not expected ", err)
 	}
 
 }
