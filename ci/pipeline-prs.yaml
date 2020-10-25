@@ -81,6 +81,8 @@ jobs:
 
       - task: unit
         file: go-tumbo3-pr/ci/tasks/unittest.yaml
+        input_mapping:
+          go-tumbo-git: go-tumbo3-pr
         on_failure:
           put: notify
           params:
