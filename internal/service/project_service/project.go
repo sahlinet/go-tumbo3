@@ -11,15 +11,13 @@ import (
 )
 
 type Project struct {
-	ID            int
-	TagID         int
-	Title         string
-	Desc          string
-	Content       string
-	CoverImageUrl string
-	State         int
-	CreatedBy     string
-	ModifiedBy    string
+	ID int
+
+	Title      string
+	Desc       string
+	Content    string
+	CreatedBy  string
+	ModifiedBy string
 
 	PageNum  int
 	PageSize int
@@ -27,16 +25,13 @@ type Project struct {
 
 func (a *Project) Add() error {
 	project := map[string]interface{}{
-		"tag_id":          a.TagID,
-		"title":           a.Title,
-		"desc":            a.Desc,
-		"content":         a.Content,
-		"created_by":      a.CreatedBy,
-		"cover_image_url": a.CoverImageUrl,
-		"state":           a.State,
+		"title":      a.Title,
+		"desc":       a.Desc,
+		"content":    a.Content,
+		"created_by": a.CreatedBy,
 	}
 
-	if err := models.AddArticle(project); err != nil {
+	if err := models.AddProject(project); err != nil {
 		return err
 	}
 
@@ -44,14 +39,11 @@ func (a *Project) Add() error {
 }
 
 func (a *Project) Edit() error {
-	return models.EditArticle(a.ID, map[string]interface{}{
-		"tag_id":          a.TagID,
-		"title":           a.Title,
-		"desc":            a.Desc,
-		"content":         a.Content,
-		"cover_image_url": a.CoverImageUrl,
-		"state":           a.State,
-		"modified_by":     a.ModifiedBy,
+	return models.EditProject(a.ID, map[string]interface{}{
+		"title":       a.Title,
+		"desc":        a.Desc,
+		"content":     a.Content,
+		"modified_by": a.ModifiedBy,
 	})
 }
 
@@ -85,9 +77,6 @@ func (a *Project) GetAll() ([]*models.Project, error) {
 	)
 
 	cache := cache_service.Project{
-		TagID: a.TagID,
-		State: a.State,
-
 		PageNum:  a.PageNum,
 		PageSize: a.PageSize,
 	}
@@ -102,7 +91,7 @@ func (a *Project) GetAll() ([]*models.Project, error) {
 		}
 	}
 
-	projects, err := models.GetProjects(a.PageNum, a.PageSize, a.getMaps())
+	projects, err := models.GetProjects(a.PageNum, a.PageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -112,26 +101,13 @@ func (a *Project) GetAll() ([]*models.Project, error) {
 }
 
 func (a *Project) Delete() error {
-	return models.DeleteArticle(a.ID)
+	return models.DeleteProject(a.ID)
 }
 
 func (a *Project) ExistByID() (bool, error) {
-	return models.ExistArticleByID(a.ID)
+	return models.ExistProjectByID(a.ID)
 }
 
 func (a *Project) Count() (int64, error) {
-	return models.GetArticleTotal(a.getMaps())
-}
-
-func (a *Project) getMaps() map[string]interface{} {
-	maps := make(map[string]interface{})
-	maps["deleted_on"] = 0
-	if a.State != -1 {
-		maps["state"] = a.State
-	}
-	if a.TagID != -1 {
-		maps["tag_id"] = a.TagID
-	}
-
-	return maps
+	return models.GetProjectTotal()
 }

@@ -1,7 +1,11 @@
 package models
 
 import (
+	"os"
+
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -31,7 +35,9 @@ func Setup(repository *Repository) *gorm.DB {
 	}
 
 	db.Table("projects").AutoMigrate(&Project{})
+	db.Table("git_repositories").AutoMigrate(&GitRepository{})
 	db.Table("auths").AutoMigrate(&Auth{})
+	db.Table("services").AutoMigrate(&Service{})
 
 	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 	//		return setting.DatabaseSetting.TablePrefix + defaultTableName
@@ -113,4 +119,45 @@ func addExtraSpaceIfExist(str string) string {
 		return " " + str
 	}
 	return ""
+}
+
+func InitTestDB() *gorm.DB {
+	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	repository := &Repository{Db: db}
+	Setup(repository)
+
+	err = createUser(db)
+	if err != nil {
+		log.Fatal("could not create user", err)
+	}
+
+	return db
+
+}
+
+func DestroyTestDB() {
+	os.Remove("gorm.db")
+}
+
+func createUser(db *gorm.DB) error {
+	user := Auth{
+		ID:       0,
+		Username: "user1",
+		Password: "password",
+	}
+
+	tx := db.Create(&user)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	log.Info(tx.Row())
+
+	return nil
 }

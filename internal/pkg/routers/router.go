@@ -13,6 +13,8 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	_ "github.com/sahlinet/go-tumbo3/docs"
+	"github.com/sahlinet/go-tumbo3/internal/controllers"
+	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/version"
 
 	"github.com/sahlinet/go-tumbo3/internal/middleware/jwt"
@@ -98,10 +100,13 @@ func Version(c *gin.Context) {
 
 // InitRouter initialize routing information
 func InitRouter() *gin.Engine {
+
+	serviceController := controllers.ServiceController{
+		Services: models.Service{}, //DI your stuff here
+	}
+
 	r := gin.New()
 	r.Use(gin.Logger())
-
-	//r.Use(static.Serve("/index.html", static.LocalFile("./static", true)))
 
 	r.POST("/auth", api.GetAuth)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -115,17 +120,13 @@ func InitRouter() *gin.Engine {
 	apiv1 := r.Group("/api/v1")
 	apiv1.Use(jwt.JWT())
 	{
-		//获取标签列表
-		//获取文章列表
 		apiv1.GET("/projects", v1.Getprojects)
-		//获取指定文章
 		apiv1.GET("/projects/:id", v1.GetProject)
-		//新建文章
-		apiv1.POST("/projects", v1.AddArticle)
-		//更新指定文章
-		apiv1.PUT("/projects/:id", v1.EditArticle)
-		//删除指定文章
-		apiv1.DELETE("/projects/:id", v1.DeleteArticle)
+		apiv1.GET("/projects/:id/services", serviceController.GetServices)
+		//apiv1.GET("/projects/:id/services/:id", v1.GetService)
+		apiv1.POST("/projects", v1.AddProject)
+		apiv1.PUT("/projects/:id", v1.EditProject)
+		apiv1.DELETE("/projects/:id", v1.DeleteProject)
 	}
 
 	r.Use(gin.Recovery())

@@ -21,9 +21,11 @@ require (
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.1 // indirect
+	github.com/spf13/cobra v1.1.1
+	github.com/spf13/viper v1.7.0
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.9
@@ -39,5 +41,5 @@ require (
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 	gorm.io/driver/postgres v1.0.3
 	gorm.io/driver/sqlite v1.1.3
-	gorm.io/gorm v1.20.3
+	gorm.io/gorm v1.20.5
 )

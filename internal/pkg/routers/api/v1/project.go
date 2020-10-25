@@ -64,18 +64,6 @@ func Getprojects(c *gin.Context) {
 	appG := app.Gin{C: c}
 	valid := validation.Validation{}
 
-	state := -1
-	if arg := c.PostForm("state"); arg != "" {
-		state = com.StrTo(arg).MustInt()
-		valid.Range(state, 0, 1, "state")
-	}
-
-	tagId := -1
-	if arg := c.PostForm("tag_id"); arg != "" {
-		tagId = com.StrTo(arg).MustInt()
-		valid.Min(tagId, 1, "tag_id")
-	}
-
 	if valid.HasErrors() {
 		app.MarkErrors(valid.Errors)
 		appG.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
@@ -83,8 +71,6 @@ func Getprojects(c *gin.Context) {
 	}
 
 	projectservice := project_service.Project{
-		TagID:    tagId,
-		State:    state,
 		PageNum:  util.GetPage(c),
 		PageSize: setting.AppSetting.PageSize,
 	}
@@ -129,7 +115,7 @@ type AddArticleForm struct {
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
 // @Router /api/v1/projects [post]
-func AddArticle(c *gin.Context) {
+func AddProject(c *gin.Context) {
 	var (
 		appG = app.Gin{C: c}
 		form AddArticleForm
@@ -142,13 +128,10 @@ func AddArticle(c *gin.Context) {
 	}
 
 	projectservice := project_service.Project{
-		TagID:         form.TagID,
-		Title:         form.Title,
-		Desc:          form.Desc,
-		Content:       form.Content,
-		CoverImageUrl: form.CoverImageUrl,
-		State:         form.State,
-		CreatedBy:     form.CreatedBy,
+		Title:     form.Title,
+		Desc:      form.Desc,
+		Content:   form.Content,
+		CreatedBy: form.CreatedBy,
 	}
 	if err := projectservice.Add(); err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_ARTICLE_FAIL, nil)
@@ -159,14 +142,13 @@ func AddArticle(c *gin.Context) {
 }
 
 type EditArticleForm struct {
-	ID            int    `form:"id" valid:"Required;Min(1)"`
-	TagID         int    `form:"tag_id" valid:"Required;Min(1)"`
-	Title         string `form:"title" valid:"Required;MaxSize(100)"`
-	Desc          string `form:"desc" valid:"Required;MaxSize(255)"`
-	Content       string `form:"content" valid:"Required;MaxSize(65535)"`
-	ModifiedBy    string `form:"modified_by" valid:"Required;MaxSize(100)"`
-	CoverImageUrl string `form:"cover_image_url" valid:"Required;MaxSize(255)"`
-	State         int    `form:"state" valid:"Range(0,1)"`
+	ID         int    `form:"id" valid:"Required;Min(1)"`
+	TagID      int    `form:"tag_id" valid:"Required;Min(1)"`
+	Title      string `form:"title" valid:"Required;MaxSize(100)"`
+	Desc       string `form:"desc" valid:"Required;MaxSize(255)"`
+	Content    string `form:"content" valid:"Required;MaxSize(65535)"`
+	ModifiedBy string `form:"modified_by" valid:"Required;MaxSize(100)"`
+	State      int    `form:"state" valid:"Range(0,1)"`
 }
 
 // @Summary Update project
@@ -181,7 +163,7 @@ type EditArticleForm struct {
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
 // @Router /api/v1/projects/{id} [put]
-func EditArticle(c *gin.Context) {
+func EditProject(c *gin.Context) {
 	var (
 		appG = app.Gin{C: c}
 		form = EditArticleForm{ID: com.StrTo(c.Param("id")).MustInt()}
@@ -194,14 +176,11 @@ func EditArticle(c *gin.Context) {
 	}
 
 	projectservice := project_service.Project{
-		ID:            form.ID,
-		TagID:         form.TagID,
-		Title:         form.Title,
-		Desc:          form.Desc,
-		Content:       form.Content,
-		CoverImageUrl: form.CoverImageUrl,
-		ModifiedBy:    form.ModifiedBy,
-		State:         form.State,
+		ID:         form.ID,
+		Title:      form.Title,
+		Desc:       form.Desc,
+		Content:    form.Content,
+		ModifiedBy: form.ModifiedBy,
 	}
 	exists, err := projectservice.ExistByID()
 	if err != nil {
@@ -228,7 +207,7 @@ func EditArticle(c *gin.Context) {
 // @Success 200 {object} app.Response
 // @Failure 500 {object} app.Response
 // @Router /api/v1/projects/{id} [delete]
-func DeleteArticle(c *gin.Context) {
+func DeleteProject(c *gin.Context) {
 	appG := app.Gin{C: c}
 	valid := validation.Validation{}
 	id := com.StrTo(c.Param("id")).MustInt()

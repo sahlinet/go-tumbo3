@@ -5,8 +5,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/sahlinet/go-tumbo3/pkg/runner/proto"
 	log "github.com/sirupsen/logrus"
+
+	pb "github.com/sahlinet/go-tumbo3/pkg/runner/proto"
 )
 
 type server struct {
