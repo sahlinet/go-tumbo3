@@ -35,9 +35,10 @@ type Execute func() string
 
 func (r SimpleRunnable) Build() error {
 	args := []string{"build", "-o=./example-plugin-go-grpc-out", "."}
-	cmd := exec.Command("/usr/local/bin/go", args...)
+	cmd := exec.Command("go", args...)
 	cmd.Dir = r.Location
-	cmd.Env = []string{"GOOS=darwin", "GOARCH=amd64", "GOCACHE=/tmp/a", "GOPATH=/Users/philipsahli/go", "CC=clang", "PATH=/usr/bin"}
+	//cmd.Env = []string{"GOOS=darwin", "GOARCH=amd64", "GOCACHE=/tmp/a", "GOPATH=/Users/philipsahli/go", "CC=clang", "PATH=/usr/bin"}
+	cmd.Env = []string{"GOCACHE=/tmp/a", "CC=clang", "PATH=/usr/bin"}
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
