@@ -80,21 +80,7 @@ jobs:
         get_params: { list_changed_files: true, skip_download: true }
 
       - task: unit
-        attempts: 1
-        timeout: 30m
-        image: golang-1.14.x-image
-        config:
-          <<: *task-config
-          run:
-            path: /bin/sh
-            args:
-              - -c
-              - |
-                set -e
-                cd go-tumbo3-pr
-                go vet ./...
-                go test -v ./...
-                echo $?
+        file: go-tumbo3-pr/ci/tasks/unittest.yaml
         on_failure:
           put: notify
           params:

@@ -54,18 +54,7 @@ jobs:
       - get: golang-1.14.x-image
       - task: run-tests
         image: golang-1.14.x-image
-        config:
-          <<: *task-config
-          run:
-            path: /bin/sh
-            args:
-              - -c
-              - |
-                set -e 
-                cd go-tumbo-git
-                go vet ./...
-                go test -v ./...
-                echo $?
+        file: go-tumbo-git/ci/tasks/unittest.yaml
   - name: web
     public: true
     plan:
