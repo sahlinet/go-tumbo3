@@ -45,7 +45,7 @@ func (r SimpleRunnable) Build() error {
 		goPath = build.Default.GOPATH
 	}
 	log.Print(goPath)
-	cmd.Env = []string{"GOCACHE=/tmp/a", fmt.Sprintf("GOPATH=%s", goPath), "CC=clang", "PATH=/usr/bin"}
+	cmd.Env = []string{"GOCACHE=/tmp/a", fmt.Sprintf("GOPATH=%s", goPath), "PATH=/usr/bin"}
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
