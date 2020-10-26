@@ -32,13 +32,41 @@ type SimpleRunnable struct {
 	KV       shared.KV
 }
 
+func (s *SimpleRunnable) FilePath() string {
+	return fmt.Sprintf("%s/%s", s.Location, s.Name)
+}
+
+type Executable struct {
+	file []byte
+}
+
+func (e *Executable) Store(b []byte) error {
+	return nil
+}
+
+func (e *Executable) Load() error {
+	e.file = []byte{}
+	return nil
+}
+
 type Execute func() string
 
 func (r SimpleRunnable) Build() error {
-	args := []string{"build", "-o=./example-plugin-go-grpc-out", "."}
+
+	executable := Executable{}
+
+	fn := fmt.Sprintf("./%s", r.Name)
+
+	args := []string{"build", fmt.Sprintf("-o=%s", fn), "."}
 	cmd := exec.Command("go", args...)
 	cmd.Dir = r.Location
-	//cmd.Env = []string{"GOOS=darwin", "GOARCH=amd64", "GOCACHE=/tmp/a", "GOPATH=/Users/philipsahli/go", "CC=clang", "PATH=/usr/bin"}
+
+	f, err := ioutil.ReadFile(r.FilePath())
+	if err != nil {
+		return err
+	}
+
+	executable.Store(f)
 
 	goPath := os.Getenv("GOPATH")
 	if goPath == "" {
@@ -51,7 +79,7 @@ func (r SimpleRunnable) Build() error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return fmt.Errorf("build error: %s", err)
 	}
@@ -133,7 +161,7 @@ func (r *SimpleRunnable) RunPlugin() {
 	// We don't want to see the plugin logs.
 	log.SetOutput(ioutil.Discard)
 
-	pluginExec := fmt.Sprintf("%s/%s", r.Location, "example-plugin-go-grpc-out")
+	pluginExec := fmt.Sprintf("%s/%s", r.Location, r.Name)
 
 	// We're a host. Start by launching the plugin process.
 	client := plugin.NewClient(&plugin.ClientConfig{

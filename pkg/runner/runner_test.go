@@ -6,7 +6,7 @@ import (
 
 func TestAbs(t *testing.T) {
 	r := SimpleRunnable{
-		Name: "example-plugin-go-grpc",
+		Name: "example-plugin-go-grpc-out",
 		//Location: "../../../go-tumbo3-examples/helloworld",
 		Location: "./example-plugin-go-grpc",
 	}
