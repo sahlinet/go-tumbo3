@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"go/build"
 	"io/ioutil"
 	"log"
 	"os"
@@ -38,7 +39,13 @@ func (r SimpleRunnable) Build() error {
 	cmd := exec.Command("go", args...)
 	cmd.Dir = r.Location
 	//cmd.Env = []string{"GOOS=darwin", "GOARCH=amd64", "GOCACHE=/tmp/a", "GOPATH=/Users/philipsahli/go", "CC=clang", "PATH=/usr/bin"}
-	cmd.Env = []string{"GOCACHE=/tmp/a", "CC=clang", "PATH=/usr/bin"}
+
+	goPath := os.Getenv("GOPATH")
+	if goPath == "" {
+		goPath = build.Default.GOPATH
+	}
+	log.Print(goPath)
+	cmd.Env = []string{"GOCACHE=/tmp/a", fmt.Sprintf("GOPATH=%s", goPath), "CC=clang", "PATH=/usr/bin"}
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
