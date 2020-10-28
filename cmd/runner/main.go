@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 
 	log "github.com/sirupsen/logrus"
 
@@ -11,6 +12,7 @@ import (
 
 func main() {
 	pluginPath := flag.String("plugin", "", "path to the plugin")
+	build := flag.Bool("build", false, "build executable")
 
 	flag.Parse()
 
@@ -23,14 +25,22 @@ func main() {
 		Location: fmt.Sprintf("%s", *pluginPath),
 	}
 
-	err := r.Build()
-	if err != nil {
-		log.Error("no error expected", err)
+	r.Name = filepath.Base(r.Location)
+
+	store := runner.ExecutableStoreFilesystem{
+		Root: "/tmp",
+	}
+
+	if *build {
+		err := r.Build(store)
+		if err != nil {
+			log.Fatal("no error expected", err)
+		}
 	}
 
 	fmt.Println(r)
 
-	err = r.RunForever()
+	err := r.RunForever(store)
 	if err != nil {
 		log.Error("no error expected", err)
 	}

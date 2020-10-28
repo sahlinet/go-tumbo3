@@ -121,6 +121,8 @@ func addExtraSpaceIfExist(str string) string {
 	return ""
 }
 
+var Repo *Repository
+
 func InitTestDB() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
@@ -129,8 +131,8 @@ func InitTestDB() *gorm.DB {
 		log.Fatal(err)
 	}
 
-	repository := &Repository{Db: db}
-	Setup(repository)
+	Repo = &Repository{Db: db}
+	Setup(Repo)
 
 	err = createUser(db)
 	if err != nil {

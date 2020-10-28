@@ -6,7 +6,7 @@ require (
 	github.com/GeertJohan/go.rice v1.0.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/astaxie/beego v1.12.2
-	github.com/boombuler/barcode v1.0.1-0.20180315051053-3c06908149f7
+	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/denisenkom/go-mssqldb v0.0.0-20200910202707-1e08a3fab204 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -17,15 +17,15 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/gomodule/redigo v2.0.1-0.20180401191855-9352ab68be13+incompatible
-	github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/jinzhu/gorm v1.9.16
+	github.com/kylelemons/godebug v1.1.0
 	github.com/mailru/easyjson v0.7.6 // indirect
-	github.com/mitchellh/go-homedir v1.1.0
+	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
+	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	github.com/spf13/cobra v1.1.1
-	github.com/spf13/viper v1.7.0
+	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.9

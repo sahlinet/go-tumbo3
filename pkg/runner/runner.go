@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"go/build"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-plugin"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/matryer/try.v1"
 
 	"github.com/sahlinet/go-tumbo3/pkg/runner/server"
@@ -19,14 +20,14 @@ import (
 )
 
 type Runnable interface {
-	Build()
-	Run()
-	Stop()
+	Build(ExecutableStore) error
+	Run(ExecutableStore) error
+	Stop() error
 }
 
 type SimpleRunnable struct {
-	Name     string
-	Code     []byte
+	Name string
+	//Code     []byte
 	Location string
 	Client   *plugin.Client
 	KV       shared.KV
@@ -36,24 +37,9 @@ func (s *SimpleRunnable) FilePath() string {
 	return fmt.Sprintf("%s/%s", s.Location, s.Name)
 }
 
-type Executable struct {
-	file []byte
-}
-
-func (e *Executable) Store(b []byte) error {
-	return nil
-}
-
-func (e *Executable) Load() error {
-	e.file = []byte{}
-	return nil
-}
-
 type Execute func() string
 
-func (r SimpleRunnable) Build() error {
-
-	executable := Executable{}
+func (r SimpleRunnable) Build(store ExecutableStore) error {
 
 	fn := fmt.Sprintf("./%s", r.Name)
 
@@ -61,14 +47,8 @@ func (r SimpleRunnable) Build() error {
 	cmd := exec.Command("go", args...)
 	cmd.Dir = r.Location
 
-	f, err := ioutil.ReadFile(r.FilePath())
-	if err != nil {
-		return err
-	}
-
-	executable.Store(f)
-
-	goPath := os.Getenv("GOPATH")
+	//goPath := os.Getenv("GOPATH")
+	goPath := ""
 	if goPath == "" {
 		goPath = build.Default.GOPATH
 	}
@@ -79,7 +59,7 @@ func (r SimpleRunnable) Build() error {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		return fmt.Errorf("build error: %s", err)
 	}
@@ -87,9 +67,22 @@ func (r SimpleRunnable) Build() error {
 	if err := cmd.Wait(); err != nil {
 		log.Print(err)
 	}
-	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
-	fmt.Printf("out:\n%s\nerr:\n%s\n", outStr, errStr)
 
+	defer os.Remove(r.FilePath())
+
+	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
+
+	if errStr != "" {
+		log.Errorf("out:\n%s\nerr:\n%s\n", outStr, errStr)
+		return errors.New(strings.TrimRight(errStr, "\n"))
+	}
+
+	f, err := ioutil.ReadFile(r.FilePath())
+	if err != nil {
+		return err
+	}
+
+	store.Add(r.Name, &f)
 	return nil
 }
 
@@ -98,15 +91,16 @@ type Response struct {
 }
 
 func (r *SimpleRunnable) IsUp() (bool, error) {
-	fmt.Println("Run IsUp")
 	if r.Client == nil {
 		return false, errors.New("down")
 	}
+	log.Println("Run IsUp")
 	return true, nil
 }
 
-func (r *SimpleRunnable) Run() error {
-	go r.RunPlugin()
+func (r *SimpleRunnable) Run(store ExecutableStore) error {
+	path := store.GetPath(r.Name)
+	go r.RunPlugin(path)
 
 	err := try.Do(func(attempt int) (bool, error) {
 		var err error
@@ -123,8 +117,8 @@ func (r *SimpleRunnable) Run() error {
 	return nil
 }
 
-func (r *SimpleRunnable) RunForever() error {
-	r.Run()
+func (r *SimpleRunnable) RunForever(store ExecutableStore) error {
+	r.Run(store)
 
 	go server.Start()
 
@@ -157,17 +151,18 @@ var pluginMap = map[string]plugin.Plugin{
 	"greeter": &GreeterPlugin{},
 }
 
-func (r *SimpleRunnable) RunPlugin() {
+func (r *SimpleRunnable) RunPlugin(path string) {
 	// We don't want to see the plugin logs.
 	log.SetOutput(ioutil.Discard)
 
-	pluginExec := fmt.Sprintf("%s/%s", r.Location, r.Name)
+	pluginExec := path
 
 	// We're a host. Start by launching the plugin process.
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: shared.Handshake,
 		Plugins:         shared.PluginMap,
-		Cmd:             exec.Command("sh", "-c", pluginExec),
+		//Cmd:             exec.Command("sh", "-c", pluginExec),
+		Cmd: exec.Command(pluginExec),
 		AllowedProtocols: []plugin.Protocol{
 			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
 	})
@@ -201,7 +196,7 @@ func (r *SimpleRunnable) RunPlugin() {
 func (r *SimpleRunnable) Execute(s string) (string, error) {
 
 	result, err := r.KV.Execute(s)
-	fmt.Println(string(result))
+	log.Info(string(result))
 	if err != nil {
 		return "", err
 	}

@@ -9,10 +9,10 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/sahlinet/go-tumbo3/internal/gredis"
-	"github.com/sahlinet/go-tumbo3/internal/pkg/app"
 	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
 	"github.com/sahlinet/go-tumbo3/internal/setting"
 	"github.com/sahlinet/go-tumbo3/internal/util"
+	"github.com/sahlinet/go-tumbo3/pkg/app"
 )
 
 func init() {
