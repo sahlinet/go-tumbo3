@@ -26,7 +26,7 @@ var flagtests = []struct {
 			Location: "../../examples/example-plugin-go-grpc-fail",
 		},
 		buildErrorExpected: `# github.com/sahlinet/go-tumbo3/examples/example-plugin-go-grpc-fail
-./main.go:5:1: syntax error: non-declaration statement outside function body`,
+		./main.go:5:1: syntax error: non-declaration statement outside function body`,
 	},
 }
 

@@ -1,8 +1,6 @@
 package main
 
-import "github.com/hashicorp/go-plugin"
-
-mport (
+import (
 	"fmt"
 
 	"github.com/hashicorp/go-plugin"
