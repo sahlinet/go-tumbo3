@@ -8,7 +8,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/sahlinet/go-tumbo3/internal/gredis"
 	"github.com/sahlinet/go-tumbo3/internal/setting"
 	"github.com/sahlinet/go-tumbo3/internal/util"
 	"github.com/sahlinet/go-tumbo3/pkg/app"
@@ -18,7 +17,6 @@ import (
 func init() {
 
 	setting.Setup()
-	gredis.Setup()
 	util.Setup()
 }
 

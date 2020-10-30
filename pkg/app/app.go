@@ -3,9 +3,9 @@ package app
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/sahlinet/go-tumbo3/internal/pkg/routers"
 	"github.com/sahlinet/go-tumbo3/internal/setting"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
+	"github.com/sahlinet/go-tumbo3/pkg/routers"
 )
 
 type App struct {

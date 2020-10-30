@@ -22,7 +22,7 @@ var doc = `{
         "contact": {},
         "license": {
             "name": "MIT",
-            "url": "https://github.com/sahlinet/go-tumboblob/master/LICENSE"
+            "url": "https://github.com/sahlinet/go-tumbo3/blob/master/LICENSE"
         },
         "version": "{{.Version}}"
     },

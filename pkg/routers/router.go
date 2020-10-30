@@ -18,8 +18,8 @@ import (
 	"github.com/sahlinet/go-tumbo3/pkg/version"
 
 	"github.com/sahlinet/go-tumbo3/internal/middleware/jwt"
-	"github.com/sahlinet/go-tumbo3/internal/pkg/routers/api"
-	v1 "github.com/sahlinet/go-tumbo3/internal/pkg/routers/api/v1"
+	"github.com/sahlinet/go-tumbo3/pkg/routers/api"
+	v1 "github.com/sahlinet/go-tumbo3/pkg/routers/api/v1"
 )
 
 func StaticFile(c *gin.Context) {
@@ -27,7 +27,7 @@ func StaticFile(c *gin.Context) {
 		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
 	}
 
-	box, err := conf.FindBox("../../../web/elm/public")
+	box, err := conf.FindBox("../../web/elm/public")
 
 	if err != nil {
 		log.Fatalf("error opening rice.Box: %s\n", err)
