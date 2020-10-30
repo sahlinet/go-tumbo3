@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
 /*func init() {
@@ -29,7 +29,7 @@ var err error
 var app App
 
 func init() {
-	db := models.InitTestDB()
+	db := models.InitTestDB("server")
 	app = App{
 		Repository: models.Repository{
 			Db: db,
@@ -38,6 +38,7 @@ func init() {
 }
 
 func TestServer(t *testing.T) {
+	defer models.DestroyTestDB("server")
 
 	tests := []struct {
 		url                string

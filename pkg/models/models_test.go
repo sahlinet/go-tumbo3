@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	InitTestDB()
+	InitTestDB("model-project")
 }
 
 func TestModelProject(t *testing.T) {
@@ -15,7 +15,7 @@ func TestModelProject(t *testing.T) {
 		Url: "https://github.com/sahlinet/go-tumbo-examples",
 	}
 
-	defer DestroyTestDB()
+	defer DestroyTestDB("model-project")
 
 	project := Project{
 		Title: "my-project",
@@ -27,7 +27,7 @@ func TestModelProject(t *testing.T) {
 	err := db.Model(&project).Association("GitRepository").Error
 	assert.Nil(t, err)
 
-	err = db.Model(&project).Association("Service").Error
+	err = db.Model(&project).Association("Services").Error
 	assert.Nil(t, err)
 
 	if err := db.Create(&project).Error; err != nil {
@@ -53,11 +53,18 @@ func TestModelProject(t *testing.T) {
 	assert.Nil(t, err)
 	t.Log(service)
 
-	// Query Service
+	// Query Service over project
 	projectLoaded, err = GetProject(1)
-	if projectLoaded.Service == nil {
+	if len(projectLoaded.Services) < 1 {
 		t.Fatal("Service expected")
 	}
-	assert.Equal(t, "service-name", projectLoaded.Service.Name)
+
+	assert.Equal(t, "service-name", projectLoaded.Services[0].Name)
+
+	// Query Service by projectId
+	services := make([]Service, 0)
+	err = GetAllServicesForProject(&services, projectLoaded.ID)
+	assert.Nil(t, err)
+	assert.Len(t, services, 1)
 
 }

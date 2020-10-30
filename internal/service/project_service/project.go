@@ -1,17 +1,11 @@
 package project_service
 
 import (
-	"encoding/json"
-
-	log "github.com/sirupsen/logrus"
-
-	"github.com/sahlinet/go-tumbo3/internal/gredis"
-	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
-	"github.com/sahlinet/go-tumbo3/internal/service/cache_service"
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
 type Project struct {
-	ID int
+	ID uint
 
 	Title      string
 	Desc       string
@@ -48,55 +42,21 @@ func (a *Project) Edit() error {
 }
 
 func (a *Project) Get() (*models.Project, error) {
-	var project *models.Project
 
-	cache := cache_service.Project{ID: a.ID}
-	key := cache.GetProjectKey()
-	if gredis.Exists(key) {
-		data, err := gredis.Get(key)
-		if err != nil {
-			log.Info(err)
-		} else {
-			json.Unmarshal(data, &project)
-			return project, nil
-		}
-	}
-
-	article, err := models.GetProject(a.ID)
+	project, err := models.GetProject(a.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	gredis.Set(key, article, 3600)
-	return article, nil
+	return project, nil
 }
 
 func (a *Project) GetAll() ([]*models.Project, error) {
-	var (
-		projects, cacheprojects []*models.Project
-	)
-
-	cache := cache_service.Project{
-		PageNum:  a.PageNum,
-		PageSize: a.PageSize,
-	}
-	key := cache.GetProjectsKey()
-	if gredis.Exists(key) {
-		data, err := gredis.Get(key)
-		if err != nil {
-			log.Info(err)
-		} else {
-			json.Unmarshal(data, &cacheprojects)
-			return cacheprojects, nil
-		}
-	}
-
 	projects, err := models.GetProjects(a.PageNum, a.PageSize)
 	if err != nil {
 		return nil, err
 	}
 
-	gredis.Set(key, projects, 3600)
 	return projects, nil
 }
 

@@ -30,7 +30,7 @@ var flagtests = []struct {
 	},
 }
 
-func TestAbs(t *testing.T) {
+func TestBuildAndRunner(t *testing.T) {
 	for _, tt := range flagtests {
 		t.Run(tt.name, func(t *testing.T) {
 

@@ -32,7 +32,7 @@ func GetProject(c *gin.Context) {
 		return
 	}
 
-	projectservice := project_service.Project{ID: id}
+	projectservice := project_service.Project{ID: uint(id)}
 	exists, err := projectservice.ExistByID()
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_CHECK_EXIST_ARTICLE_FAIL, nil)
@@ -176,7 +176,7 @@ func EditProject(c *gin.Context) {
 	}
 
 	projectservice := project_service.Project{
-		ID:         form.ID,
+		ID:         uint(form.ID),
 		Title:      form.Title,
 		Desc:       form.Desc,
 		Content:    form.Content,
@@ -219,7 +219,7 @@ func DeleteProject(c *gin.Context) {
 		return
 	}
 
-	projectservice := project_service.Project{ID: id}
+	projectservice := project_service.Project{ID: uint(id)}
 	exists, err := projectservice.ExistByID()
 	if err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_CHECK_EXIST_ARTICLE_FAIL, nil)

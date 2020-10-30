@@ -14,7 +14,7 @@ type Project struct {
 	State      int    `json:"state"`
 
 	GitRepository *GitRepository
-	Service       *Service
+	Services      []Service
 }
 
 type GitRepository struct {
@@ -29,7 +29,7 @@ func (GitRepository) TableName() string {
 }
 
 // ExistProjectByID checks if an project exists based on ID
-func ExistProjectByID(id int) (bool, error) {
+func ExistProjectByID(id uint) (bool, error) {
 	var project Project
 	err := db.Select("id").Where("id = ? AND deleted_on = ? ", id, 0).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
@@ -65,9 +65,9 @@ func GetProjects(pageNum int, pageSize int) ([]*Project, error) {
 }
 
 // GetProject Get a single project based on ID
-func GetProject(id int) (*Project, error) {
+func GetProject(id uint) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Preload("Service").Where("id = ? AND deleted_on = ? ", id, 0).First(&project).Error
+	err := db.Preload("GitRepository").Preload("Services").Where("id = ? AND deleted_on = ? ", id, 0).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func GetProject(id int) (*Project, error) {
 }
 
 // EditProject modify a single article
-func EditProject(id int, data interface{}) error {
+func EditProject(id uint, data interface{}) error {
 	if err := db.Model(&Project{}).Where("id = ? AND deleted_on = ? ", id, 0).Updates(data).Error; err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (project *Project) Update() error {
 }
 
 // Deleteproject delete a single article
-func DeleteProject(id int) error {
+func DeleteProject(id uint) error {
 	if err := db.Where("id = ?", id).Delete(Project{}).Error; err != nil {
 		return err
 	}

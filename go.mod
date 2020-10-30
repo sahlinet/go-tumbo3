@@ -8,7 +8,6 @@ require (
 	github.com/astaxie/beego v1.12.2
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
-	github.com/denisenkom/go-mssqldb v0.0.0-20200910202707-1e08a3fab204 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-ini/ini v1.62.0
@@ -18,7 +17,6 @@ require (
 	github.com/golang/protobuf v1.4.3
 	github.com/gomodule/redigo v2.0.1-0.20180401191855-9352ab68be13+incompatible
 	github.com/hashicorp/go-plugin v1.3.0
-	github.com/jinzhu/gorm v1.9.16
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect

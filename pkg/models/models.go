@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"os"
 
 	"gorm.io/driver/sqlite"
@@ -17,7 +18,12 @@ type Repository struct {
 }
 
 type Model struct {
-	ID         int `gorm:"primary_key" json:"id"`
+	ModelNonId
+
+	ID uint `gorm:"primary_key" json:"id"`
+}
+
+type ModelNonId struct {
 	CreatedOn  int `json:"created_on"`
 	ModifiedOn int `json:"modified_on"`
 	DeletedOn  int `json:"deleted_on"`
@@ -38,6 +44,7 @@ func Setup(repository *Repository) *gorm.DB {
 	db.Table("git_repositories").AutoMigrate(&GitRepository{})
 	db.Table("auths").AutoMigrate(&Auth{})
 	db.Table("services").AutoMigrate(&Service{})
+	db.Table("executable_store_db_items").AutoMigrate(&ExecutableStoreDbItem{})
 
 	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 	//		return setting.DatabaseSetting.TablePrefix + defaultTableName
@@ -123,8 +130,8 @@ func addExtraSpaceIfExist(str string) string {
 
 var Repo *Repository
 
-func InitTestDB() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{
+func InitTestDB(name string) *gorm.DB {
+	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("gorm-%s.db", name)), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
@@ -143,8 +150,8 @@ func InitTestDB() *gorm.DB {
 
 }
 
-func DestroyTestDB() {
-	os.Remove("gorm.db")
+func DestroyTestDB(name string) {
+	os.Remove(fmt.Sprintf("gorm-%s.db", name))
 }
 
 func createUser(db *gorm.DB) error {

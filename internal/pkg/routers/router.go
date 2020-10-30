@@ -13,8 +13,8 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	_ "github.com/sahlinet/go-tumbo3/docs"
-	"github.com/sahlinet/go-tumbo3/internal/controllers"
-	"github.com/sahlinet/go-tumbo3/internal/pkg/models"
+	"github.com/sahlinet/go-tumbo3/pkg/controllers"
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/version"
 
 	"github.com/sahlinet/go-tumbo3/internal/middleware/jwt"

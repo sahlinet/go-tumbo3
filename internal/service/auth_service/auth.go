@@ -1,6 +1,8 @@
 package auth_service
 
-import "github.com/sahlinet/go-tumbo3/internal/pkg/models"
+import (
+	"github.com/sahlinet/go-tumbo3/pkg/models"
+)
 
 type Auth struct {
 	Username string
