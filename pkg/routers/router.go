@@ -1,5 +1,3 @@
-//go:generate rice embed-go
-
 package routers
 
 import (

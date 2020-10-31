@@ -38,7 +38,7 @@ func init() {
 		},
 	}
 
-	db.Create(&models.Project{
+	project := &models.Project{
 		Name:          "the-project",
 		Description:   "a project to test",
 		State:         0,
@@ -46,7 +46,20 @@ func init() {
 		Services: []models.Service{{
 			Name: "service-A",
 		}},
-	})
+	}
+
+	err := db.Model(&project).Association("GitRepository").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Model(&project).Association("Services").Error
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db.Create(&project)
 
 }
 
@@ -67,7 +80,18 @@ func TestServer(t *testing.T) {
 			expectedHTTPStatus: http.StatusOK,
 			expectedMessage:    `{"code":200,"msg":"ok","data":{"lists":[{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"Name":"the-project","description":"a project to test","created_by":"","modified_by":"","state":0,"GitRepository":null,"Services":null}]}}`,
 		},
-
+		{
+			url:                "/api/v1/projects/1/services",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
+			expectedMessage:    `[{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"Name":"service-A","ProjectID":1,"Runner":null}]`,
+		},
+		{
+			url:                "/api/v1/projects/1/services/1",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
+			expectedMessage:    `{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"Name":"service-A","ProjectID":1,"Runner":null}`,
+		},
 		{
 			url:                "/auth",
 			method:             "POST",
@@ -151,7 +175,7 @@ func TestServer(t *testing.T) {
 					log.Fatal(err)
 				}
 				bodyString := string(bodyBytes)
-				assert.Equal(t, bodyString, tt.expectedMessage)
+				assert.Equal(t, tt.expectedMessage, bodyString)
 			}
 
 			assert.Nil(t, err)

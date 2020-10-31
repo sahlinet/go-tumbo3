@@ -35,7 +35,7 @@ func GetService(c *gin.Context) {
 	}
 
 	projectId := c.Params.ByName("projectId")
-	serviceId := c.Params.ByName("serviceId")
+	serviceId := strings.TrimLeft(c.Params.ByName("serviceId"), "/")
 
 	//var services []models.Service
 	service := models.Service{}
