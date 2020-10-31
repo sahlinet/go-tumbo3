@@ -52,7 +52,7 @@ func (a *Project) Get() (*models.Project, error) {
 }
 
 func (a *Project) GetAll() ([]*models.Project, error) {
-	projects, err := models.GetProjects(a.PageNum, a.PageSize)
+	projects, err := models.GetProjects()
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +68,7 @@ func (a *Project) ExistByID() (bool, error) {
 	return models.ExistProjectByID(a.ID)
 }
 
-func (a *Project) Count() (int64, error) {
+/*func (a *Project) Count() (int64, error) {
 	return models.GetProjectTotal()
 }
+*/

@@ -75,11 +75,12 @@ func Getprojects(c *gin.Context) {
 		PageSize: setting.AppSetting.PageSize,
 	}
 
-	total, err := projectservice.Count()
-	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_COUNT_ARTICLE_FAIL, nil)
-		return
-	}
+	/*	total, err := projectservice.Count()
+		if err != nil {
+			appG.Response(http.StatusInternalServerError, e.ERROR_COUNT_ARTICLE_FAIL, nil)
+			return
+		}
+	*/
 
 	projects, err := projectservice.GetAll()
 	if err != nil {
@@ -89,7 +90,7 @@ func Getprojects(c *gin.Context) {
 
 	data := make(map[string]interface{})
 	data["lists"] = projects
-	data["total"] = total
+	//	data["total"] = total
 
 	appG.Response(http.StatusOK, e.SUCCESS, data)
 }

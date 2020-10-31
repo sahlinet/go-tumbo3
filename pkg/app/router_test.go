@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -35,6 +37,17 @@ func init() {
 			Db: db,
 		},
 	}
+
+	db.Create(&models.Project{
+		Name:          "the-project",
+		Description:   "a project to test",
+		State:         0,
+		GitRepository: nil,
+		Services: []models.Service{{
+			Name: "service-A",
+		}},
+	})
+
 }
 
 func TestServer(t *testing.T) {
@@ -48,12 +61,12 @@ func TestServer(t *testing.T) {
 		expectedMessage    string
 		isForm             bool
 	}{
-		/*		{
-				url:                "/api/v1/projects",
-				method:             "GET",
-				expectedHTTPStatus: http.StatusOK,
-				expectedMessage:    `{"Message":"Worker huhu started"}`,
-			},*/
+		{
+			url:                "/api/v1/projects",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
+			expectedMessage:    `{"code":200,"msg":"ok","data":{"lists":[{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"Name":"the-project","description":"a project to test","created_by":"","modified_by":"","state":0,"GitRepository":null,"Services":null}]}}`,
+		},
 
 		{
 			url:                "/auth",
@@ -86,6 +99,12 @@ func TestServer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.url, func(t *testing.T) {
 
+			loginUrl := fmt.Sprintf("%s%s", ts.URL, "/auth")
+			token, err := Auth(loginUrl, "user1", "password")
+			if err != nil {
+				t.Error(err)
+			}
+
 			reqBody, err := json.Marshal(tt.body)
 			if err != nil {
 				print(err)
@@ -113,6 +132,7 @@ func TestServer(t *testing.T) {
 					t.Error("http.NewRequest err", err)
 				}
 				client := http.Client{}
+				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 				resp, err = client.Do(req)
 				if err != nil {
 					t.Error("client.Do err", err)
@@ -121,12 +141,52 @@ func TestServer(t *testing.T) {
 			}
 
 			if resp.StatusCode != tt.expectedHTTPStatus {
-				t.Errorf("Did not get expected HTTP status code %b, got %b", tt.expectedHTTPStatus, resp.StatusCode)
+				t.Errorf("Did not get expected HTTP status code %d, got %d", tt.expectedHTTPStatus, resp.StatusCode)
+			}
+
+			if tt.expectedMessage != "" {
+
+				bodyBytes, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					log.Fatal(err)
+				}
+				bodyString := string(bodyBytes)
+				assert.Equal(t, bodyString, tt.expectedMessage)
 			}
 
 			assert.Nil(t, err)
 
 		})
 	}
+
+}
+
+type Response struct {
+	Data Token `json:"data"`
+}
+
+type Token struct {
+	Token string `json:"token"`
+}
+
+func Auth(u, username, password string) (string, error) {
+	resp, err := http.PostForm(u, url.Values{
+		"username": {username},
+		"password": {password}})
+	if err != nil {
+		return "", err
+	}
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//bodyString := string(bodyBytes)
+	respJson := &Response{}
+	err = json.Unmarshal(bodyBytes, respJson)
+	if err != nil {
+		return "", err
+	}
+	return respJson.Data.Token, nil
 
 }

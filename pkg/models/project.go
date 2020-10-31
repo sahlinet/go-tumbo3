@@ -7,11 +7,11 @@ import (
 type Project struct {
 	Model
 
-	Title      string `json:"title"`
-	Desc       string `json:"desc"`
-	CreatedBy  string `json:"created_by"`
-	ModifiedBy string `json:"modified_by"`
-	State      int    `json:"state"`
+	Name        string `json:"Name"`
+	Description string `json:"description"`
+	CreatedBy   string `json:"created_by"`
+	ModifiedBy  string `json:"modified_by"`
+	State       int    `json:"state"`
 
 	GitRepository *GitRepository
 	Services      []Service
@@ -43,6 +43,7 @@ func ExistProjectByID(id uint) (bool, error) {
 	return false, nil
 }
 
+/*
 // GetProjectTotal gets the total number of projects based on the constraints
 func GetProjectTotal() (int64, error) {
 	var count int64
@@ -52,11 +53,13 @@ func GetProjectTotal() (int64, error) {
 
 	return count, nil
 }
+*/
 
 // GetProjects gets a list of projects based on paging constraints
-func GetProjects(pageNum int, pageSize int) ([]*Project, error) {
+func GetProjects() ([]*Project, error) {
 	var projects []*Project
-	err := db.Preload("Tag").Offset(pageNum).Limit(pageSize).Find(&projects).Error
+	//err := db.Offset(pageNum).Limit(pageSize).Find(&projects).Error
+	err := db.Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -92,10 +95,10 @@ func EditProject(id uint, data interface{}) error {
 // AddProject add a single article
 func AddProject(data map[string]interface{}) error {
 	project := Project{
-		Title:     data["title"].(string),
-		Desc:      data["desc"].(string),
-		CreatedBy: data["created_by"].(string),
-		State:     data["state"].(int),
+		Name:        data["name"].(string),
+		Description: data["description"].(string),
+		CreatedBy:   data["created_by"].(string),
+		State:       data["state"].(int),
 	}
 	if err := db.Debug().Create(&project).Error; err != nil {
 		return err

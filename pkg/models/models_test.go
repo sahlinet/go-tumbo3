@@ -18,8 +18,8 @@ func TestModelProject(t *testing.T) {
 	defer DestroyTestDB("model-project")
 
 	project := Project{
-		Title: "my-project",
-		Desc:  "my-project",
+		Name:        "my-project",
+		Description: "my-project",
 
 		GitRepository: &repo,
 	}

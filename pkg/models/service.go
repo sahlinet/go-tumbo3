@@ -49,3 +49,11 @@ func GetAllServicesForProject(services *[]Service, projectId uint) error {
 	return nil
 	*/
 }
+
+func GetService(service *Service, projectId, serviceId uint) error {
+	err := db.Where("project_id = ? AND id = ?", projectId, serviceId).Find(&service).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
