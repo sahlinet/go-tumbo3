@@ -3,6 +3,8 @@
 ## Layout
 
 
+But now: https://medium.com/@_ektagarg/golang-a-todo-app-using-gin-980ebb7853c8
+
 1. https://github.com/eddycjy/go-gin-example
 2. https://github.com/Massad/gin-boilerplate
 

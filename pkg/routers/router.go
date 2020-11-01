@@ -33,8 +33,11 @@ func InitRouter() *gin.Engine {
 
 		apiv1.GET("/projects/:projectId", v1.GetProject)
 		apiv1.GET("/projects/:projectId/services/*serviceId", CustomRouter)
+
 		apiv1.PUT("/projects/:projectId/services/:serviceId/run", controllers.ServiceState)
 		apiv1.DELETE("/projects/:projectId/services/:serviceId/run", controllers.ServiceState)
+
+		apiv1.GET("call/projects/:projectId/services/:serviceId", controllers.ServiceCaller)
 		apiv1.GET("/projects", v1.Getprojects)
 
 		//		apiv1.GET("/projects/:projectId/services", controllers.GetServices)

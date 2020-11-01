@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 var db *gorm.DB
@@ -148,7 +147,7 @@ var Repo *Repository
 
 func InitTestDB(name string) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("gorm-%s.db", name)), &gorm.Config{
-		Logger:                                   logger.Default.LogMode(logger.Info),
+		//Logger:                                   logger.Default.LogMode(logger.Info),
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {

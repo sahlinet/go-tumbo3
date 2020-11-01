@@ -97,6 +97,12 @@ func TestServer(t *testing.T) {
 			expectedHTTPStatus: http.StatusOK,
 			expectedMessage:    "",
 		},
+		/*		{
+				url:                "/api/v1/call/projects/1/services/1/",
+				method:             "GET",
+				expectedHTTPStatus: http.StatusOK,
+				expectedMessage:    "hello",
+			},*/
 		{
 			url:                "/api/v1/projects/1/services/1/run",
 			method:             "DELETE",
