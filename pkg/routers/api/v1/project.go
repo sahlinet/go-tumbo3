@@ -129,10 +129,10 @@ func AddProject(c *gin.Context) {
 	}
 
 	projectservice := project_service.Project{
-		Title:     form.Title,
-		Desc:      form.Desc,
-		Content:   form.Content,
-		CreatedBy: form.CreatedBy,
+		Title:   form.Title,
+		Desc:    form.Desc,
+		Content: form.Content,
+		//CreatedBy: form.CreatedBy,
 	}
 	if err := projectservice.Add(); err != nil {
 		appG.Response(http.StatusInternalServerError, e.ERROR_ADD_ARTICLE_FAIL, nil)
@@ -177,11 +177,11 @@ func EditProject(c *gin.Context) {
 	}
 
 	projectservice := project_service.Project{
-		ID:         uint(form.ID),
-		Title:      form.Title,
-		Desc:       form.Desc,
-		Content:    form.Content,
-		ModifiedBy: form.ModifiedBy,
+		ID:      uint(form.ID),
+		Title:   form.Title,
+		Desc:    form.Desc,
+		Content: form.Content,
+		//ModifiedBy: form.ModifiedBy,
 	}
 	exists, err := projectservice.ExistByID()
 	if err != nil {

@@ -3,6 +3,7 @@ package models
 import (
 	"testing"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,4 +68,13 @@ func TestModelProject(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Len(t, services, 1)
 
+	// Create Runner for Service
+	runner := Runner{
+		Endpoint: "the-endpoint",
+		Pid:      111,
+	}
+	log.Debug(runner)
+
+	err = CreateRunner(&runner, services[0])
+	assert.Nil(t, err)
 }

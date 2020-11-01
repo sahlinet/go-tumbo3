@@ -7,7 +7,7 @@ import (
 type Project struct {
 	Model
 
-	Name        string `json:"Name"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 	CreatedBy   string `json:"created_by"`
 	ModifiedBy  string `json:"modified_by"`
@@ -70,7 +70,7 @@ func GetProjects() ([]*Project, error) {
 // GetProject Get a single project based on ID
 func GetProject(id uint) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Preload("Services").Where("id = ? AND deleted_on = ? ", id, 0).First(&project).Error
+	err := db.Preload("GitRepository").Preload("Services").Where("id = ?", id).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -97,8 +97,8 @@ func AddProject(data map[string]interface{}) error {
 	project := Project{
 		Name:        data["name"].(string),
 		Description: data["description"].(string),
-		CreatedBy:   data["created_by"].(string),
-		State:       data["state"].(int),
+		//CreatedBy:   data["created_by"].(string),
+		State: data["state"].(int),
 	}
 	if err := db.Debug().Create(&project).Error; err != nil {
 		return err

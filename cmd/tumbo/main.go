@@ -36,7 +36,9 @@ func main() {
 		setting.DatabaseSetting.Port,
 		setting.DatabaseSetting.SslMode)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 
 	if err != nil {
 		log.Fatalf("models.Setup err: %v", err)

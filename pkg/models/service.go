@@ -5,12 +5,16 @@ type Service struct {
 	Name string
 
 	ProjectID uint
-	Runner    *Runner
+	Runners   []Runner
 }
 
 type Runner struct {
-	Size     string
-	Endpoint string
+	Model
+	//ModelNonId
+
+	//Size     string
+	Endpoint string `json:"endpoint"`
+	Pid      int
 
 	ServiceID uint
 }
@@ -52,6 +56,23 @@ func GetAllServicesForProject(services *[]Service, projectId uint) error {
 
 func GetService(service *Service, projectId, serviceId uint) error {
 	err := db.Where("project_id = ? AND id = ?", projectId, serviceId).Find(&service).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreateRunner(r *Runner, service Service) error {
+	//err := db.Create(r).Error
+	err := db.Model(&service).Association("Runners").Append(r)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func GetRunner(runner *Runner, service Service) error {
+	err := db.Where("service_id = ?", service.ID).Find(&runner).Error
 	if err != nil {
 		return err
 	}

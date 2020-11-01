@@ -19,10 +19,10 @@ type Project struct {
 
 func (a *Project) Add() error {
 	project := map[string]interface{}{
-		"title":      a.Title,
-		"desc":       a.Desc,
-		"content":    a.Content,
-		"created_by": a.CreatedBy,
+		"title":   a.Title,
+		"desc":    a.Desc,
+		"content": a.Content,
+		//"created_by": a.CreatedBy,
 	}
 
 	if err := models.AddProject(project); err != nil {
@@ -34,10 +34,10 @@ func (a *Project) Add() error {
 
 func (a *Project) Edit() error {
 	return models.EditProject(a.ID, map[string]interface{}{
-		"title":       a.Title,
-		"desc":        a.Desc,
-		"content":     a.Content,
-		"modified_by": a.ModifiedBy,
+		"title":   a.Title,
+		"desc":    a.Desc,
+		"content": a.Content,
+		//	"modified_by": a.ModifiedBy,
 	})
 }
 

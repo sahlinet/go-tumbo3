@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go/build"
 	"io/ioutil"
+	"net"
 	"os"
 	"os/exec"
 	"strings"
@@ -15,9 +16,20 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/matryer/try.v1"
 
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/server"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/shared"
 )
+
+func GetRunnableForProject(p *models.Service) (SimpleRunnable, error) {
+
+	runnable := SimpleRunnable{
+		Name:     "example-plugin-go-grpc-out",
+		Location: "../../examples/example-plugin-go-grpc",
+	}
+
+	return runnable, nil
+}
 
 type Runnable interface {
 	Build(ExecutableStore) error
@@ -98,9 +110,17 @@ func (r *SimpleRunnable) IsUp() (bool, error) {
 	return true, nil
 }
 
-func (r *SimpleRunnable) Run(store ExecutableStore) error {
+type RunnableEndpoint struct {
+	Addr net.Addr
+	Pid  int
+}
+
+func (r *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
+
+	ac := make(chan *plugin.ReattachConfig)
+
 	path := store.GetPath(r.Name)
-	go r.RunPlugin(path)
+	go r.RunPlugin(path, ac)
 
 	err := try.Do(func(attempt int) (bool, error) {
 		var err error
@@ -114,7 +134,14 @@ func (r *SimpleRunnable) Run(store ExecutableStore) error {
 		log.Fatalln("error:", err)
 	}
 
-	return nil
+	reAttachConfig := <-ac
+
+	endpoint := RunnableEndpoint{
+		Addr: reAttachConfig.Addr,
+		Pid:  reAttachConfig.Pid,
+	}
+
+	return endpoint, nil
 }
 
 func (r *SimpleRunnable) RunForever(store ExecutableStore) error {
@@ -151,7 +178,7 @@ var pluginMap = map[string]plugin.Plugin{
 	"greeter": &GreeterPlugin{},
 }
 
-func (r *SimpleRunnable) RunPlugin(path string) {
+func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) {
 	// We don't want to see the plugin logs.
 	log.SetOutput(ioutil.Discard)
 
@@ -161,12 +188,10 @@ func (r *SimpleRunnable) RunPlugin(path string) {
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: shared.Handshake,
 		Plugins:         shared.PluginMap,
-		//Cmd:             exec.Command("sh", "-c", pluginExec),
-		Cmd: exec.Command(pluginExec),
+		Cmd:             exec.Command(pluginExec),
 		AllowedProtocols: []plugin.Protocol{
 			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
 	})
-	//defer client.Kill()
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
@@ -188,6 +213,10 @@ func (r *SimpleRunnable) RunPlugin(path string) {
 	kv := raw.(shared.KV)
 	r.KV = kv
 
+	reAttachConfig := client.ReattachConfig()
+
+	ac <- reAttachConfig
+
 	c := make(chan struct{})
 	<-c
 	//os.Exit(0)
@@ -202,5 +231,36 @@ func (r *SimpleRunnable) Execute(s string) (string, error) {
 	}
 
 	return string(result), nil
+
+}
+
+func (r *SimpleRunnable) Attach(endpoint string, pid int) error {
+
+	reattachConfig := plugin.ReattachConfig{
+		Protocol: "grpc",
+		Addr: &net.UnixAddr{
+			Name: endpoint,
+			Net:  "unix",
+		},
+		Pid:  pid,
+		Test: false,
+	}
+	client := plugin.NewClient(&plugin.ClientConfig{
+		Reattach: &reattachConfig,
+	})
+	log.Info(client)
+
+	r.Client = client
+	c, err := client.Client()
+	if err != nil {
+		return err
+	}
+
+	err = c.Ping()
+	if err != nil {
+		return fmt.Errorf("cannot ping, %s", err)
+	}
+
+	return nil
 
 }

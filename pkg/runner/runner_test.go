@@ -47,9 +47,13 @@ func TestBuildAndRunner(t *testing.T) {
 
 			if tt.buildErrorExpected == "" {
 
-				err = r.Run(&store)
+				endpoint, err := r.Run(&store)
 				if err != nil {
 					t.Error("no error expected", err)
+				}
+
+				if endpoint.Pid == 0 {
+					t.Error("Pid cannot be zero")
 				}
 
 				expectedResponse := "Hello Hello"

@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var db *gorm.DB
@@ -40,10 +39,27 @@ func Setup(repository *Repository) *gorm.DB {
 		log.Fatalf("models.Setup err: %v", err)
 	}
 
-	db.Table("projects").AutoMigrate(&Project{})
-	db.Table("git_repositories").AutoMigrate(&GitRepository{})
-	db.Table("auths").AutoMigrate(&Auth{})
-	db.Table("services").AutoMigrate(&Service{})
+	err = db.Table("projects").AutoMigrate(&Project{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.Table("git_repositories").AutoMigrate(&GitRepository{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.Table("auths").AutoMigrate(&Auth{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.Table("services").AutoMigrate(&Service{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.Table("runners").AutoMigrate(&Runner{})
+	//err = db.AutoMigrate(&Runner{})
+	if err != nil {
+		log.Fatal(err)
+	}
 	db.Table("executable_store_db_items").AutoMigrate(&ExecutableStoreDbItem{})
 
 	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
@@ -132,7 +148,8 @@ var Repo *Repository
 
 func InitTestDB(name string) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(fmt.Sprintf("gorm-%s.db", name)), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger:                                   logger.Default.LogMode(logger.Info),
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -166,7 +183,7 @@ func createUser(db *gorm.DB) error {
 		return tx.Error
 	}
 
-	log.Info(tx.Row())
+	//log.Info(tx.Row())
 
 	return nil
 }
