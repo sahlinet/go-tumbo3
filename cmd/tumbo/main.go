@@ -3,24 +3,30 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"gorm.io/driver/postgres"
 
-	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 
-	"github.com/sahlinet/go-tumbo/internal/gredis"
-	"github.com/sahlinet/go-tumbo/internal/pkg/models"
-	"github.com/sahlinet/go-tumbo/internal/pkg/routers"
-	"github.com/sahlinet/go-tumbo/internal/setting"
-	"github.com/sahlinet/go-tumbo/internal/util"
+	"github.com/sahlinet/go-tumbo3/internal/setting"
+	"github.com/sahlinet/go-tumbo3/internal/util"
+	"github.com/sahlinet/go-tumbo3/pkg/app"
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
 func init() {
 
 	setting.Setup()
+	util.Setup()
+}
 
+// @title Golang Gin API
+// @version 1.0
+// @description Tumbo
+// @termsOfService https://github.com/sahlinet/go-tumbo
+// @license.name MIT
+// @license.url https://github.com/sahlinet/go-tumbo3/blob/master/LICENSE
+func main() {
 	var err error
 	dsn := fmt.Sprintf("user=%s password=%s dbname=%s host=%s port=%s sslmode=%s TimeZone=Europe/Zurich",
 		setting.DatabaseSetting.User,
@@ -30,7 +36,9 @@ func init() {
 		setting.DatabaseSetting.Port,
 		setting.DatabaseSetting.SslMode)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 
 	if err != nil {
 		log.Fatalf("models.Setup err: %v", err)
@@ -38,39 +46,12 @@ func init() {
 
 	repository := &models.Repository{Db: db}
 
-	models.Setup(repository)
-	//	logging.Setup()
-	gredis.Setup()
-	util.Setup()
-}
-
-// @title Golang Gin API
-// @version 1.0
-// @description Tumbo
-// @termsOfService https://github.com/sahlinet/go-tumbo
-// @license.name MIT
-// @license.url https://github.com/sahlinet/go-tumbo/blob/master/LICENSE
-func main() {
-
-	gin.SetMode(setting.ServerSetting.RunMode)
-
-	routersInit := routers.InitRouter()
-	readTimeout := setting.ServerSetting.ReadTimeout
-	writeTimeout := setting.ServerSetting.WriteTimeout
-	endPoint := fmt.Sprintf(":%d", setting.ServerSetting.HttpPort)
-	maxHeaderBytes := 1 << 20
-
-	server := &http.Server{
-		Addr:           endPoint,
-		Handler:        routersInit,
-		ReadTimeout:    readTimeout,
-		WriteTimeout:   writeTimeout,
-		MaxHeaderBytes: maxHeaderBytes,
+	app := app.App{
+		Repository: models.Repository{Db: db},
 	}
 
-	log.Printf("[info] start http server listening %s", endPoint)
-
-	server.ListenAndServe()
+	models.Setup(repository)
+	app.Run().Run(":8000")
 
 	// If you want Graceful Restart, you need a Unix system and download github.com/fvbock/endless
 	//endless.DefaultReadTimeOut = readTimeout

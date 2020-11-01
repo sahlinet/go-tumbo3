@@ -23,34 +23,18 @@ resources:
       repository: sahlinet/go-tumbo3
       access_token: ((github-access.token))
 
-  - name: golang-1.14.x-image
-    type: registry-image
-    icon: docker
-    source:
-      repository: golang
-      tag: 1.14-stretch
+#  - name: golang-1.14.x-image
+#    type: registry-image
+#    icon: docker
+#    source:
+#      repository: golang
+#      tag: 1.14-stretch
 
   - name: notify
     type: slack-notification
     source:
       url: ((slack-webhook.webhook))
 
-
-task-config: &task-config
-  platform: linux
-  inputs:
-    - name: go-tumbo3-pr
-  params:
-    GO111MODULE: "on"
-  run:
-    path: /bin/sh
-    args:
-      - -c
-      - |
-        cd go/go-tumbo3
-
-        go vet ./...
-        go test -v ./...
 jobs:
   - name: unit
     public: true
@@ -72,7 +56,7 @@ jobs:
             trigger: true
             version: every
           - get: go-tumbo3-master
-          - get: golang-1.14.x-image
+#          - get: golang-1.14.x-image
       - put: concourse-status-update-pending
         resource: go-tumbo3-pr
         inputs: [go-tumbo3-pr]
@@ -80,21 +64,9 @@ jobs:
         get_params: { list_changed_files: true, skip_download: true }
 
       - task: unit
-        attempts: 1
-        timeout: 30m
-        image: golang-1.14.x-image
-        config:
-          <<: *task-config
-          run:
-            path: /bin/sh
-            args:
-              - -c
-              - |
-                set -e
-                cd go-tumbo3-pr
-                go vet ./...
-                go test -v ./...
-                echo $?
+        file: go-tumbo3-pr/ci/tasks/unittest.yaml
+        input_mapping:
+          go-tumbo-git: go-tumbo3-pr
         on_failure:
           put: notify
           params:

@@ -1,25 +1,17 @@
 package project_service
 
 import (
-	"encoding/json"
-
-	log "github.com/sirupsen/logrus"
-
-	"github.com/sahlinet/go-tumbo/internal/gredis"
-	"github.com/sahlinet/go-tumbo/internal/pkg/models"
-	"github.com/sahlinet/go-tumbo/internal/service/cache_service"
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
 type Project struct {
-	ID            int
-	TagID         int
-	Title         string
-	Desc          string
-	Content       string
-	CoverImageUrl string
-	State         int
-	CreatedBy     string
-	ModifiedBy    string
+	ID uint
+
+	Title      string
+	Desc       string
+	Content    string
+	CreatedBy  string
+	ModifiedBy string
 
 	PageNum  int
 	PageSize int
@@ -27,16 +19,13 @@ type Project struct {
 
 func (a *Project) Add() error {
 	project := map[string]interface{}{
-		"tag_id":          a.TagID,
-		"title":           a.Title,
-		"desc":            a.Desc,
-		"content":         a.Content,
-		"created_by":      a.CreatedBy,
-		"cover_image_url": a.CoverImageUrl,
-		"state":           a.State,
+		"title":   a.Title,
+		"desc":    a.Desc,
+		"content": a.Content,
+		//"created_by": a.CreatedBy,
 	}
 
-	if err := models.AddArticle(project); err != nil {
+	if err := models.AddProject(project); err != nil {
 		return err
 	}
 
@@ -44,94 +33,42 @@ func (a *Project) Add() error {
 }
 
 func (a *Project) Edit() error {
-	return models.EditArticle(a.ID, map[string]interface{}{
-		"tag_id":          a.TagID,
-		"title":           a.Title,
-		"desc":            a.Desc,
-		"content":         a.Content,
-		"cover_image_url": a.CoverImageUrl,
-		"state":           a.State,
-		"modified_by":     a.ModifiedBy,
+	return models.EditProject(a.ID, map[string]interface{}{
+		"title":   a.Title,
+		"desc":    a.Desc,
+		"content": a.Content,
+		//	"modified_by": a.ModifiedBy,
 	})
 }
 
 func (a *Project) Get() (*models.Project, error) {
-	var project *models.Project
 
-	cache := cache_service.Project{ID: a.ID}
-	key := cache.GetProjectKey()
-	if gredis.Exists(key) {
-		data, err := gredis.Get(key)
-		if err != nil {
-			log.Info(err)
-		} else {
-			json.Unmarshal(data, &project)
-			return project, nil
-		}
-	}
-
-	article, err := models.GetProject(a.ID)
+	project, err := models.GetProject(a.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	gredis.Set(key, article, 3600)
-	return article, nil
+	return project, nil
 }
 
 func (a *Project) GetAll() ([]*models.Project, error) {
-	var (
-		projects, cacheprojects []*models.Project
-	)
-
-	cache := cache_service.Project{
-		TagID: a.TagID,
-		State: a.State,
-
-		PageNum:  a.PageNum,
-		PageSize: a.PageSize,
-	}
-	key := cache.GetProjectsKey()
-	if gredis.Exists(key) {
-		data, err := gredis.Get(key)
-		if err != nil {
-			log.Info(err)
-		} else {
-			json.Unmarshal(data, &cacheprojects)
-			return cacheprojects, nil
-		}
-	}
-
-	projects, err := models.GetProjects(a.PageNum, a.PageSize, a.getMaps())
+	projects, err := models.GetProjects()
 	if err != nil {
 		return nil, err
 	}
 
-	gredis.Set(key, projects, 3600)
 	return projects, nil
 }
 
 func (a *Project) Delete() error {
-	return models.DeleteArticle(a.ID)
+	return models.DeleteProject(a.ID)
 }
 
 func (a *Project) ExistByID() (bool, error) {
-	return models.ExistArticleByID(a.ID)
+	return models.ExistProjectByID(a.ID)
 }
 
-func (a *Project) Count() (int64, error) {
-	return models.GetArticleTotal(a.getMaps())
+/*func (a *Project) Count() (int64, error) {
+	return models.GetProjectTotal()
 }
-
-func (a *Project) getMaps() map[string]interface{} {
-	maps := make(map[string]interface{})
-	maps["deleted_on"] = 0
-	if a.State != -1 {
-		maps["state"] = a.State
-	}
-	if a.TagID != -1 {
-		maps["tag_id"] = a.TagID
-	}
-
-	return maps
-}
+*/
