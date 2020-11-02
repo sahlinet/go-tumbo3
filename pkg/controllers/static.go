@@ -13,7 +13,8 @@ import (
 
 func StaticFile(c echo.Context) error {
 	conf := rice.Config{
-		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
+		//LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
+		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded},
 	}
 
 	box, err := conf.FindBox("../../web/elm/public")

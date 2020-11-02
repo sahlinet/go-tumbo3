@@ -50,8 +50,25 @@ func main() {
 		Repository: models.Repository{Db: db},
 	}
 
+	err = models.CreateUser(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	project := models.Project{
+		Name: "test-project",
+	}
+
+	tx := db.Create(&project)
+	if tx.Error != nil {
+		log.Fatal(tx.Error)
+	}
+
 	models.Setup(repository)
-	app.Run().Start(":8000")
+	err = app.Run().Start(":8000")
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// If you want Graceful Restart, you need a Unix system and download github.com/fvbock/endless
 	//endless.DefaultReadTimeOut = readTimeout

@@ -157,7 +157,7 @@ func InitTestDB(name string) *gorm.DB {
 	Repo = &Repository{Db: db}
 	Setup(Repo)
 
-	err = createUser(db)
+	err = CreateUser(db)
 	if err != nil {
 		log.Fatal("could not create user", err)
 	}
@@ -168,21 +168,4 @@ func InitTestDB(name string) *gorm.DB {
 
 func DestroyTestDB(name string) {
 	os.Remove(fmt.Sprintf("gorm-%s.db", name))
-}
-
-func createUser(db *gorm.DB) error {
-	user := Auth{
-		ID:       0,
-		Username: "user1",
-		Password: "password",
-	}
-
-	tx := db.Create(&user)
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	//log.Info(tx.Row())
-
-	return nil
 }

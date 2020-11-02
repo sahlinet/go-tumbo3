@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/sahlinet/go-tumbo3/pkg/client"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
@@ -176,7 +177,7 @@ func TestServer(t *testing.T) {
 		t.Run(tt.url, func(t *testing.T) {
 
 			loginUrl := fmt.Sprintf("%s%s", ts.URL, "/auth")
-			token, err := Auth(loginUrl, "user1", "password")
+			token, err := client.Auth(loginUrl, "user1", "password")
 			if err != nil {
 				t.Error(err)
 			}
@@ -234,30 +235,5 @@ func TestServer(t *testing.T) {
 
 		})
 	}
-
-}
-
-type Token struct {
-	Token string `json:"token"`
-}
-
-func Auth(u, username, password string) (string, error) {
-	resp, err := http.PostForm(u, url.Values{
-		"username": {username},
-		"password": {password}})
-	if err != nil {
-		return "", err
-	}
-
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	respJson := &Token{}
-	err = json.Unmarshal(bodyBytes, respJson)
-	if err != nil {
-		return "", err
-	}
-	return respJson.Token, nil
 
 }

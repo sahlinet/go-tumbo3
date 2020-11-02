@@ -9,23 +9,24 @@ require (
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/fatih/color v1.10.0
 	github.com/go-ini/ini v1.62.0
 	github.com/go-openapi/spec v0.19.12 // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/labstack/echo v3.3.10+incompatible
-	github.com/labstack/gommon v0.3.0 // indirect
+	github.com/labstack/gommon v0.3.0
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
-	github.com/mattn/go-colorable v0.1.8 // indirect
-	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
+	github.com/rodaine/table v1.0.1
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/sirupsen/logrus v1.7.0
-	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggo/swag v1.6.9
 	github.com/unknwon/com v1.0.1
+	github.com/urfave/cli v1.20.0
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
