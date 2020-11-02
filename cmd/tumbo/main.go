@@ -51,7 +51,7 @@ func main() {
 	}
 
 	models.Setup(repository)
-	app.Run().Run(":8000")
+	app.Run().Start(":8000")
 
 	// If you want Graceful Restart, you need a Unix system and download github.com/fvbock/endless
 	//endless.DefaultReadTimeOut = readTimeout

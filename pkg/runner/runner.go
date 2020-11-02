@@ -224,11 +224,13 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 
 func (r *SimpleRunnable) Execute(s string) (string, error) {
 
+	/*  */
 	result, err := r.KV.Execute(s)
-	log.Info(string(result))
 	if err != nil {
 		return "", err
 	}
+
+	log.Info(string(result))
 
 	return string(result), nil
 
@@ -246,7 +248,9 @@ func (r *SimpleRunnable) Attach(endpoint string, pid int) error {
 		Test: false,
 	}
 	client := plugin.NewClient(&plugin.ClientConfig{
-		Reattach: &reattachConfig,
+		HandshakeConfig: shared.Handshake,
+		Plugins:         shared.PluginMap,
+		Reattach:        &reattachConfig,
 	})
 	log.Info(client)
 
@@ -260,6 +264,19 @@ func (r *SimpleRunnable) Attach(endpoint string, pid int) error {
 	if err != nil {
 		return fmt.Errorf("cannot ping, %s", err)
 	}
+
+	// Request the plugin
+
+	raw, err := c.Dispense("kv_grpc")
+	if err != nil {
+		log.Warn("Error:", err.Error())
+		return err
+	}
+
+	// We should have a KV store now! This feels like a normal interface
+	// implementation but is in fact over an RPC connection.
+	kv := raw.(shared.KV)
+	r.KV = kv
 
 	return nil
 

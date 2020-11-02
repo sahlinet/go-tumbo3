@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	rice "github.com/GeertJohan/go.rice"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
 )
 
-func StaticFile(c *gin.Context) {
+func StaticFile(c echo.Context) error {
 	conf := rice.Config{
 		LocateOrder: []rice.LocateMethod{rice.LocateEmbedded, rice.LocateAppended, rice.LocateFS},
 	}
@@ -23,48 +23,43 @@ func StaticFile(c *gin.Context) {
 	}
 
 	var l string
-	if c.Request.URL.Path == "/" {
+	if c.Request().URL.Path == "/" {
 
 		l = "index.html"
-		c.Writer.Header().Set("Content-Type", "text/html")
+		c.Response().Header().Set("Content-Type", "text/html")
 	}
-	p := c.Request.URL.Path[1:]
+	p := c.Request().URL.Path[1:]
 
 	logrus.Info("Trying to load ", p)
 	if strings.HasSuffix(p, "dist/elm.compiled.js") {
 		l = filepath.Base(p)
 		//		l = filepath.Base("dist/elm.compiled.js")
-		c.Writer.Header().Set("Content-Type", "text/javascript")
+		c.Response().Header().Set("Content-Type", "text/javascript")
 		contentString, err := box.String("dist/elm.compiled.js")
 		if err != nil {
 			logrus.Error(err)
-			c.String(404, "not found")
-			return
+			return c.String(404, "not found")
 		}
-		c.String(200, contentString)
-		return
+		return c.String(200, contentString)
 	}
 
 	if strings.HasSuffix(p, "main.js") {
-		c.Writer.Header().Set("Content-Type", "text/javascript")
+		c.Response().Header().Set("Content-Type", "text/javascript")
 		contentString, err := box.String(p)
 		if err != nil {
-			c.String(404, "not found")
-			return
+			return c.String(404, "not found")
 		}
-		c.String(200, contentString)
-		return
+		return c.String(200, contentString)
 	}
 
 	if strings.HasSuffix(p, ".css") {
 		//l = filepath.Base(p)
 		l = filepath.Base("style.css")
-		c.Writer.Header().Set("Content-Type", "text/css")
+		c.Response().Header().Set("Content-Type", "text/css")
 	}
 
 	if l == "" {
-		c.String(404, "not found")
-		return
+		return c.String(404, "not found")
 	}
 
 	logrus.Info("Trying to load ", l)
@@ -72,11 +67,10 @@ func StaticFile(c *gin.Context) {
 	contentString, err := box.String(l)
 	if err != nil {
 		logrus.Errorf("could not read file contents as string: %s\n", err)
-		c.String(404, "not found")
-		return
+		return c.String(404, "not found")
 	}
 
-	c.String(200, contentString)
+	return c.String(200, contentString)
 
 	//appG := app.Gin{C: c}
 	//appG.Response(http.StatusOK, e.ERROR_AUTH_TOKEN, nil)

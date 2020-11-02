@@ -77,19 +77,54 @@ func TestServer(t *testing.T) {
 			url:                "/api/v1/projects",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
-			expectedMessage:    `{"code":200,"msg":"ok","data":{"lists":[{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"name":"the-project","description":"a project to test","created_by":"","modified_by":"","state":0,"GitRepository":null,"Services":null}]}}`,
+			expectedMessage: `[
+ {
+  "created_on": 0,
+  "modified_on": 0,
+  "deleted_on": 0,
+  "id": 1,
+  "name": "the-project",
+  "description": "a project to test",
+  "created_by": "",
+  "modified_by": "",
+  "state": 0,
+  "GitRepository": null,
+  "Services": null
+ }
+]
+`,
 		},
 		{
 			url:                "/api/v1/projects/1/services",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
-			expectedMessage:    `[{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"Name":"service-A","ProjectID":1,"Runners":null}]`,
+			expectedMessage: `[
+ {
+  "created_on": 0,
+  "modified_on": 0,
+  "deleted_on": 0,
+  "id": 1,
+  "Name": "service-A",
+  "ProjectID": 1,
+  "Runners": null
+ }
+]
+`,
 		},
 		{
 			url:                "/api/v1/projects/1/services/1",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
-			expectedMessage:    `{"created_on":0,"modified_on":0,"deleted_on":0,"id":1,"Name":"service-A","ProjectID":1,"Runners":null}`,
+			expectedMessage: `{
+ "created_on": 0,
+ "modified_on": 0,
+ "deleted_on": 0,
+ "id": 1,
+ "Name": "service-A",
+ "ProjectID": 1,
+ "Runners": null
+}
+`,
 		},
 		{
 			url:                "/api/v1/projects/1/services/1/run",
@@ -97,12 +132,12 @@ func TestServer(t *testing.T) {
 			expectedHTTPStatus: http.StatusOK,
 			expectedMessage:    "",
 		},
-		/*		{
-				url:                "/api/v1/call/projects/1/services/1/",
-				method:             "GET",
-				expectedHTTPStatus: http.StatusOK,
-				expectedMessage:    "hello",
-			},*/
+		{
+			url:                "/api/v1/projects/1/services/1/call",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
+			expectedMessage:    "Hello hello",
+		},
 		{
 			url:                "/api/v1/projects/1/services/1/run",
 			method:             "DELETE",
@@ -202,10 +237,6 @@ func TestServer(t *testing.T) {
 
 }
 
-type Response struct {
-	Data Token `json:"data"`
-}
-
 type Token struct {
 	Token string `json:"token"`
 }
@@ -222,12 +253,11 @@ func Auth(u, username, password string) (string, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//bodyString := string(bodyBytes)
-	respJson := &Response{}
+	respJson := &Token{}
 	err = json.Unmarshal(bodyBytes, respJson)
 	if err != nil {
 		return "", err
 	}
-	return respJson.Data.Token, nil
+	return respJson.Token, nil
 
 }
