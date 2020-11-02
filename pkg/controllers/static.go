@@ -1,4 +1,4 @@
-//go:generate rice embed-go
+//go:generate rice embed-go -v
 
 package controllers
 
@@ -18,6 +18,7 @@ func StaticFile(c echo.Context) error {
 	}
 
 	box, err := conf.FindBox("../../web/elm/public")
+	distBox, err := conf.FindBox("../../web/elm/public/dist")
 
 	if err != nil {
 		logrus.Fatalf("error opening rice.Box: %s\n", err)
@@ -36,7 +37,7 @@ func StaticFile(c echo.Context) error {
 		l = filepath.Base(p)
 		//		l = filepath.Base("dist/elm.compiled.js")
 		c.Response().Header().Set("Content-Type", "text/javascript")
-		contentString, err := box.String("dist/elm.compiled.js")
+		contentString, err := distBox.String("elm.compiled.js")
 		if err != nil {
 			logrus.Error(err)
 			return c.String(404, "not found")
