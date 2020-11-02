@@ -8,3 +8,4 @@ runtime/*
 
 build/runner
 build/tumbo
+build/tumbo-cli
