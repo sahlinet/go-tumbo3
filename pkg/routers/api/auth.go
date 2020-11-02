@@ -1,15 +1,15 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"time"
 
 	"github.com/astaxie/beego/validation"
-	"github.com/gin-gonic/gin"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/labstack/echo"
 
-	"github.com/sahlinet/go-tumbo3/internal/app"
-	"github.com/sahlinet/go-tumbo3/internal/e"
 	"github.com/sahlinet/go-tumbo3/internal/service/auth_service"
-	"github.com/sahlinet/go-tumbo3/internal/util"
 )
 
 type auth struct {
@@ -17,56 +17,48 @@ type auth struct {
 	Password string `valid:"Required; MaxSize(50)"`
 }
 
-// @Summary Get Auth
-// @Produce  json
-// @Param username query string true "userName"
-// @Param password query string true "password"
-// @Success 200 {object} app.Response
-// @Failure 500 {object} app.Response
-// @Router /auth [get]
-func GetAuth(c *gin.Context) {
-	appG := app.Gin{C: c}
+func GetAuth(c echo.Context) error {
 	valid := validation.Validation{}
 
-	username := c.PostForm("username")
-	password := c.PostForm("password")
+	username := c.FormValue("username")
+	password := c.FormValue("password")
 
-	err, token, done := GetToken(username, password, valid, appG)
-	if done {
-		return
-	}
+	token, err := GetToken(username, password, valid, c)
 	if err != nil {
-		appG.Response(http.StatusInternalServerError, e.ERROR_AUTH_TOKEN, nil)
-		return
+		return c.NoContent(http.StatusInternalServerError)
 	}
 
-	appG.Response(http.StatusOK, e.SUCCESS, map[string]string{
+	return c.JSON(http.StatusOK, map[string]string{
 		"token": token,
 	})
 }
 
-func GetToken(username string, password string, valid validation.Validation, appg app.Gin) (error, string, bool) {
-	a := auth{Username: username, Password: password}
-	ok, _ := valid.Valid(&a)
-
-	if !ok {
-		app.MarkErrors(valid.Errors)
-		appg.Response(http.StatusBadRequest, e.INVALID_PARAMS, nil)
-		return nil, "", true
-	}
-
+func GetToken(username string, password string, valid validation.Validation, c echo.Context) (string, error) {
 	authService := auth_service.Auth{Username: username, Password: password}
 	isExist, err := authService.Check()
+
 	if err != nil {
-		appg.Response(http.StatusInternalServerError, e.ERROR_AUTH_CHECK_TOKEN_FAIL, nil)
-		return nil, "", true
+		return "", errors.New("authService.check error")
 	}
 
 	if !isExist {
-		appg.Response(http.StatusUnauthorized, e.ERROR_AUTH, nil)
-		return nil, "", true
+		return "", errors.New("authService.check not successfull")
 	}
 
-	token, err := util.GenerateToken(username, password)
-	return err, token, false
+	// Create token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Set claims
+	claims := token.Claims.(jwt.MapClaims)
+	claims["name"] = username
+	claims["admin"] = false
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		return "", errors.New("error generating jwt token")
+	}
+
+	return t, nil
 }

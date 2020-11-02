@@ -1,24 +1,26 @@
 package app
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo"
 
-	"github.com/sahlinet/go-tumbo3/internal/setting"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/routers"
 )
 
 type App struct {
-	Api        *gin.Engine
+	Api        *echo.Echo
 	Repository models.Repository
 }
 
-func (a *App) Run() *gin.Engine {
+func (a *App) Run() *echo.Echo {
 
-	gin.SetMode(setting.ServerSetting.RunMode)
+	//gin.SetMode(setting.ServerSetting.RunMode)
 
 	routersInit := routers.InitRouter()
 	return routersInit
+
+	// Start server
+
 	/*readTimeout := setting.ServerSetting.ReadTimeout
 	writeTimeout := setting.ServerSetting.WriteTimeout
 	endPoint := fmt.Sprintf(":%d", setting.ServerSetting.HttpPort)

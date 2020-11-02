@@ -22,3 +22,20 @@ func CheckAuth(username, password string) (bool, error) {
 
 	return false, nil
 }
+
+func CreateUser(db *gorm.DB) error {
+	user := Auth{
+		ID:       0,
+		Username: "user1",
+		Password: "password",
+	}
+
+	tx := db.Create(&user)
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	//log.Info(tx.Row())
+
+	return nil
+}
