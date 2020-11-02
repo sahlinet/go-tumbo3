@@ -17,7 +17,7 @@ func init() {
 	}
 	file4 := &embedded.EmbeddedFile{
 		Filename:    "index.html",
-		FileModTime: time.Unix(1603087483, 0),
+		FileModTime: time.Unix(1604325379, 0),
 
 		Content: string("<!DOCTYPE html>\n<html lang=\"en\">\n\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <!-- CSS goes here -->\n  <link rel=\"stylesheet\" href=\"/style.css\">\n</head>\n\n<body>\n  <!-- JavaScript goes here -->\n  <script src=\"/dist/elm.compiled.js\"></script>\n  <script src=\"/main.js\"></script>\n</body>\n\n</html>"),
 	}
@@ -37,7 +37,7 @@ func init() {
 	// define dirs
 	dir1 := &embedded.EmbeddedDir{
 		Filename:   "",
-		DirModTime: time.Unix(1603087483, 0),
+		DirModTime: time.Unix(1604325379, 0),
 		ChildFiles: []*embedded.EmbeddedFile{
 			file4, // "index.html"
 			file5, // "main.js"
@@ -64,7 +64,7 @@ func init() {
 	// register embeddedBox
 	embedded.RegisterEmbeddedBox(`../../web/elm/public`, &embedded.EmbeddedBox{
 		Name: `../../web/elm/public`,
-		Time: time.Unix(1603087483, 0),
+		Time: time.Unix(1604325379, 0),
 		Dirs: map[string]*embedded.EmbeddedDir{
 			"":     dir1,
 			"dist": dir2,
