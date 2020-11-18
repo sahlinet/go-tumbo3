@@ -39,27 +39,7 @@ func init() {
 		},
 	}
 
-	project := &models.Project{
-		Name:          "the-project",
-		Description:   "a project to test",
-		State:         0,
-		GitRepository: nil,
-		Services: []models.Service{{
-			Name: "service-A",
-		}},
-	}
-
-	err := db.Model(&project).Association("GitRepository").Error
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = db.Model(&project).Association("Services").Error
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	db.Create(&project)
+	TestData(db)
 
 }
 

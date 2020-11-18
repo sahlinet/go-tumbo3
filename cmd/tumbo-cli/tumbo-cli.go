@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -48,37 +49,118 @@ func commands() {
 		{
 			Name:    "projects",
 			Aliases: []string{"p"},
-			Usage:   "List projects",
-			Action: func(c *cli.Context) {
-				headerFmt := tc.New(tc.FgGreen, tc.Underline).SprintfFunc()
-				columnFmt := tc.New(tc.FgYellow).SprintfFunc()
+			Usage:   "manage projects",
+			Subcommands: []cli.Command{
+				{
+					Name:  "list",
+					Usage: "list projects",
+					Action: func(c *cli.Context) error {
 
-				tbl := table.New("ID", "Name", "Score", "Added")
-				tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
+						headerFmt := tc.New(tc.FgGreen, tc.Underline).SprintfFunc()
+						columnFmt := tc.New(tc.FgYellow).SprintfFunc()
 
-				req, err := http.NewRequest("GET", "http://localhost:8000/api/v1/projects", nil)
-				if err != nil {
-					log.Fatal("http.NewRequest err", err)
-				}
-				client := http.Client{}
-				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", viper.Get("target.local.token")))
+						tbl := table.New("ID", "Name", "Score", "Added")
+						tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt)
 
-				resp, err := client.Do(req)
-				if err != nil {
-					log.Fatal("client.Do err", err)
-				}
+						req, err := http.NewRequest("GET", "http://localhost:8000/api/v1/projects", nil)
+						if err != nil {
+							log.Fatal("http.NewRequest err", err)
+						}
+						client := http.Client{}
+						req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", viper.Get("target.local.token")))
 
-				projects := []models.Project{}
-				err = json.NewDecoder(resp.Body).Decode(&projects)
-				if err != nil {
-					log.Fatal(err)
-				}
+						resp, err := client.Do(req)
+						if err != nil {
+							log.Fatal("client.Do err", err)
+						}
 
-				for _, project := range projects {
-					tbl.AddRow(project.ID, project.Name)
-				}
+						projects := []models.Project{}
+						err = json.NewDecoder(resp.Body).Decode(&projects)
+						if err != nil {
+							log.Fatal(err)
+						}
 
-				tbl.Print()
+						for _, project := range projects {
+							tbl.AddRow(project.ID, project.Name)
+						}
+
+						tbl.Print()
+						return nil
+
+					},
+				},
+				{
+					Name:  "run",
+					Usage: "run a project",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "name"},
+					},
+					Action: func(c *cli.Context) error {
+
+						url := fmt.Sprintf("http://localhost:8000/api/v1/projects/1/services/1/run")
+						req, err := http.NewRequest("PUT", url, nil)
+						if err != nil {
+							log.Fatal("http.NewRequest err", err)
+						}
+						client := http.Client{}
+						req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", viper.Get("target.local.token")))
+
+						resp, err := client.Do(req)
+						if err != nil {
+							log.Fatal("client.Do err", err)
+						}
+
+						if resp.StatusCode != 200 {
+							b, err := ioutil.ReadAll(resp.Body)
+							if err != nil {
+								log.Fatal(err)
+							}
+
+							log.Error(string(b))
+
+							os.Exit(1)
+						}
+
+						return nil
+
+					},
+				},
+				{
+					Name:  "show",
+					Usage: "show a project",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "name"},
+					},
+					Action: func(c *cli.Context) error {
+
+						url := fmt.Sprintf("http://localhost:8000/api/v1/projects/24")
+						req, err := http.NewRequest("GET", url, nil)
+						if err != nil {
+							log.Fatal("http.NewRequest err", err)
+						}
+						client := http.Client{}
+						req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", viper.Get("target.local.token")))
+
+						resp, err := client.Do(req)
+						if err != nil {
+							log.Fatal("client.Do err", err)
+						}
+
+						if resp.StatusCode != 200 {
+							b, err := ioutil.ReadAll(resp.Body)
+							if err != nil {
+								log.Fatal(err)
+							}
+
+							log.Error(string(b))
+
+							os.Exit(1)
+						}
+
+						return nil
+
+					},
+				},
 			},
 		},
 	}

@@ -32,7 +32,7 @@ func StaticFile(c echo.Context) error {
 	}
 	p := c.Request().URL.Path[1:]
 
-	logrus.Info("Trying to load ", p)
+	//logrus.Info("Trying to load ", p)
 	if strings.HasSuffix(p, "dist/elm.compiled.js") {
 		l = filepath.Base(p)
 		//		l = filepath.Base("dist/elm.compiled.js")

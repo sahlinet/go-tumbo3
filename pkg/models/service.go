@@ -62,6 +62,14 @@ func GetService(service *Service, projectId, serviceId uint) error {
 	return nil
 }
 
+func GetRepositoryForProject(repo *GitRepository, projectId uint) error {
+	err := db.Where("project_id = ?", projectId).Find(&repo).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func CreateRunner(r *Runner, service Service) error {
 	//err := db.Create(r).Error
 	err := db.Model(&service).Association("Runners").Append(r)
