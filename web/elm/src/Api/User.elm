@@ -47,11 +47,8 @@ encode user =
 
 loginUrl : String
 loginUrl =
+    --    "http://localhost:8000/auth"
     "/auth"
-
-
-
---"http://localhost:8000/auth"
 
 
 authentication :
@@ -63,14 +60,11 @@ authentication options =
     let
         body =
             Http.multipartBody
-                --[ Http.stringPart "username" options.user.email
-                --, Http.stringPart "password" options.user.password
                 [ Http.stringPart "username" options.user.email
                 , Http.stringPart "password" options.user.password
                 ]
     in
     Http.post
-        --{ url = "https://conduit.productionready.io/api/users/login"
         { url = loginUrl
         , body = body
         , expect =

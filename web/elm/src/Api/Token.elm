@@ -97,7 +97,7 @@ request method body maybeToken options =
         , headers =
             case maybeToken of
                 Just (Token token) ->
-                    [ Http.header "Authorization" ("Token " ++ token) ]
+                    [ Http.header "Authorization" ("Bearer " ++ token) ]
 
                 Nothing ->
                     []

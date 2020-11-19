@@ -104,7 +104,7 @@ update msg model =
                 Just user_ ->
                     Cmd.batch
                         [ Ports.saveUser user_
-                        , Utils.Route.navigate model.key Route.Top
+                        , Utils.Route.navigate model.key Route.Projects
                         ]
 
                 Nothing ->

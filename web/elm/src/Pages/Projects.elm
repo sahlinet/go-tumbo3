@@ -1,17 +1,15 @@
-module Pages.Top exposing (Model, Msg, Params, page)
+module Pages.Projects exposing (Model, Msg, Params, page)
 
-import Api.Article.Tag exposing (Tag)
 import Api.Data exposing (Data)
 import Api.Project exposing (Project)
 import Api.User exposing (User)
+import Components.ProjectList
 import Html exposing (..)
-import Html.Attributes exposing (class, classList)
-import Html.Events as Events
+import Html.Attributes exposing (..)
 import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
-import Spa.Url exposing (Url)
-import Utils.Maybe
+import Spa.Url as Url exposing (Url)
 
 
 page : Page Params Model Msg
@@ -39,67 +37,68 @@ type alias Model =
     , listing : Data (List Api.Project.Project)
 
     --, page : Int
-    , tags : Data (List Tag)
-    , activeTab : Tab
+    --, tags : Data (List Tag)
+    --, activeTab : Tab
     }
-
-
-type Tab
-    = FeedFor User
-    | Global
-    | TagFilter Tag
 
 
 init : Shared.Model -> Url Params -> ( Model, Cmd Msg )
 init shared _ =
     let
-        activeTab : Tab
-        activeTab =
-            shared.user
-                |> Maybe.map FeedFor
-                |> Maybe.withDefault Global
-
         model : Model
         model =
             { user = shared.user
             , listing = Api.Data.Loading
-
-            --  , page = 1
-            , tags = Api.Data.Loading
-            , activeTab = activeTab
             }
     in
     ( model
     , Cmd.batch
-        [--fetchProjects model
-         --  , Api.Article.Tag.list { onResponse = GotTags }
+        [ fetchProjects model
         ]
     )
 
 
+fetchProjects :
+    { model
+        | user : Maybe User
+    }
+    -> Cmd Msg
+fetchProjects model =
+    Api.Project.list
+        { token = Maybe.map .token model.user
+        , onResponse = GotProjects
+        }
+
+
+
+-- UPDATE
+
+
 type Msg
-    = GotArticles (Data (List Api.Project.Project))
-    | GotTags (Data (List Tag))
-    | SelectedTab Tab
+    = GotProjects (Data (List Api.Project.Project))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GotProjects listing ->
+            ( { model | listing = listing }
+            , Cmd.none
+            )
 
 
 save : Model -> Shared.Model -> Shared.Model
-save _ shared =
+save model shared =
     shared
 
 
 load : Shared.Model -> Model -> ( Model, Cmd Msg )
-load _ model =
+load shared model =
     ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions model =
     Sub.none
 
 
@@ -109,18 +108,16 @@ subscriptions _ =
 
 view : Model -> Document Msg
 view model =
-    { title = ""
+    { title = "Projects"
     , body =
-        [ div [ class "home-page" ]
-            [ div [ class "banner" ]
-                [ div [ class "container" ]
-                    []
-                ]
-            , div [ class "container page" ]
-                [ div [ class "row" ]
-                    [ div [ class "col-md-9" ]
-                        []
-                    ]
+        [ div [ class "container" ]
+            [ h1 []
+                [ text "Projects" ]
+            , div [ class "col-md-9" ]
+                [ Components.ProjectList.view
+                    { user = model.user
+                    , projectListing = model.listing
+                    }
                 ]
             ]
         ]
