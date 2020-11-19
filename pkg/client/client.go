@@ -20,14 +20,16 @@ func Auth(u, username, password string) (string, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	respJson := &Token{}
+	respJson := &User{}
 	err = json.Unmarshal(bodyBytes, respJson)
 	if err != nil {
 		return "", err
 	}
-	return respJson.Token, nil
+	return respJson.User.Token, nil
 }
 
-type Token struct {
-	Token string `json:"token"`
+type User struct {
+	User struct {
+		Token string `json:"token"`
+	} `json:"user"`
 }

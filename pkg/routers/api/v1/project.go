@@ -23,6 +23,9 @@ func GetProject(c echo.Context) error {
 		return c.String(http.StatusBadRequest, fmt.Sprint(e.INVALID_PARAMS))
 	}
 
+	// TODO: Set in debug mode only.
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+
 	projectservice := project_service.Project{ID: uint(id)}
 	exists, err := projectservice.ExistByID()
 	if err != nil {
