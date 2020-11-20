@@ -5,3 +5,6 @@ node_modules
 
 # MacOS weird stuff
 .DS_Store
+
+
+elm-stuff/
