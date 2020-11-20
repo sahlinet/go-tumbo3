@@ -10,6 +10,7 @@ import Shared
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
 import Spa.Url as Url exposing (Url)
+import String exposing (contains)
 
 
 page : Page Params Model Msg
@@ -53,20 +54,31 @@ init shared _ =
     in
     ( model
     , Cmd.batch
-        [ fetchProjects model
+        [ fetchProjects model shared.url.host
         ]
     )
+
+
+makeUrl : String -> String
+makeUrl host =
+    if contains "localhost" host then
+        "http://localhost:8000"
+
+    else
+        ""
 
 
 fetchProjects :
     { model
         | user : Maybe User
     }
+    -> String
     -> Cmd Msg
-fetchProjects model =
+fetchProjects model host =
     Api.Project.list
         { token = Maybe.map .token model.user
         , onResponse = GotProjects
+        , urlPrefix = makeUrl host
         }
 
 

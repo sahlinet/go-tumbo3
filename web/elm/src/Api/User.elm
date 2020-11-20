@@ -70,7 +70,7 @@ authentication options =
                 ]
     in
     Http.post
-        { url = loginUrl "localhost"
+        { url = loginUrl options.browserLocation
         , body = body
         , expect =
             Api.Data.expectJson options.onResponse

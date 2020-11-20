@@ -63,7 +63,7 @@ jobs:
         params: { path: go-tumbo3-pr, status: pending, context: unit }
         get_params: { list_changed_files: true, skip_download: true }
 
-      - task: unit
+      - task: go-unittests
         file: go-tumbo3-pr/ci/tasks/unittest.yaml
         input_mapping:
           go-tumbo-git: go-tumbo3-pr
@@ -80,7 +80,7 @@ jobs:
               The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
-      - task: unit
+      - task: build-elm
         file: go-tumbo3-pr/ci/tasks/web-build.yaml
         input_mapping:
           go-tumbo-git: go-tumbo3-pr

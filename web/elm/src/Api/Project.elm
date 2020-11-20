@@ -47,14 +47,13 @@ decoder =
 
 list :
     { token : Maybe Token
+    , urlPrefix : String
     , onResponse : Data (List Project) -> msg
     }
     -> Cmd msg
 list options =
     Api.Token.get options.token
-        { url = "http://localhost:8000/api/v1/projects"
-
-        --{ url = "/api/v1/projects" --++ --Filters.toQueryString options.page --options.filters
+        { url = options.urlPrefix ++ "/api/v1/projects"
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.list decoder)
