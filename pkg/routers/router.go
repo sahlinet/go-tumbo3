@@ -56,6 +56,7 @@ func InitRouter() *echo.Echo {
 
 	}
 
+	e.GET("/*", controllers.StaticFile)
 	//r.Use(gin.Recovery())
 
 	return e

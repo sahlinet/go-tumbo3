@@ -3,6 +3,7 @@
 package controllers
 
 import (
+	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -60,8 +61,9 @@ func StaticFile(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/css")
 	}
 
+	// catch all and redirect to top
 	if l == "" {
-		return c.String(404, "not found")
+		return c.Redirect(http.StatusMovedPermanently, "/")
 	}
 
 	logrus.Info("Trying to load ", l)
@@ -74,6 +76,4 @@ func StaticFile(c echo.Context) error {
 
 	return c.String(200, contentString)
 
-	//appG := app.Gin{C: c}
-	//appG.Response(http.StatusOK, e.ERROR_AUTH_TOKEN, nil)
 }
