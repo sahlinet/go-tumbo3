@@ -11,6 +11,7 @@ import Spa.Document exposing (Document)
 import Spa.Generated.Route as Route
 import Spa.Page as Page exposing (Page)
 import Spa.Url exposing (Url)
+import Url
 import Utils.Route
 
 
@@ -37,6 +38,7 @@ type alias Params =
 type alias Model =
     { user : Data User
     , key : Key
+    , url : Url.Url
     , email : String
     , password : String
     }
@@ -53,6 +55,7 @@ init shared { key } =
                 Api.Data.NotAsked
         )
         key
+        shared.url
         ""
         ""
     , Cmd.none
@@ -90,7 +93,8 @@ update msg model =
         AttemptedSignIn ->
             ( model
             , Api.User.authentication
-                { user =
+                { browserLocation = model.url.host
+                , user =
                     { email = model.email
                     , password = model.password
                     }

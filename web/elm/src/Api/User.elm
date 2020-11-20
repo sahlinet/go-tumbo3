@@ -18,6 +18,7 @@ import Api.Token exposing (Token)
 import Http
 import Json.Decode as Json
 import Json.Encode as Encode
+import String exposing (contains)
 import Utils.Json
 
 
@@ -45,15 +46,19 @@ encode user =
         ]
 
 
-loginUrl : String
-loginUrl =
-    --    "http://localhost:8000/auth"
-    "/auth"
+loginUrl : String -> String
+loginUrl url =
+    if contains "localhost" url then
+        "http://localhost:8000/auth"
+
+    else
+        "/auth"
 
 
 authentication :
     { user : { user | email : String, password : String }
     , onResponse : Data User -> msg
+    , browserLocation : String
     }
     -> Cmd msg
 authentication options =
@@ -65,7 +70,7 @@ authentication options =
                 ]
     in
     Http.post
-        { url = loginUrl
+        { url = loginUrl "localhost"
         , body = body
         , expect =
             Api.Data.expectJson options.onResponse
