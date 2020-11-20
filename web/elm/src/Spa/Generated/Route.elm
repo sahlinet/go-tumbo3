@@ -10,8 +10,12 @@ import Url.Parser as Parser exposing ((</>), Parser)
 
 type Route
     = Top
-    | ExamplePage
+    | Login
     | NotFound
+    | Projects
+    | Register
+    | Settings
+    | Profile__Username_String { username : String }
 
 
 fromUrl : Url -> Maybe Route
@@ -23,8 +27,14 @@ routes : Parser (Route -> a) a
 routes =
     Parser.oneOf
         [ Parser.map Top Parser.top
-        , Parser.map ExamplePage (Parser.s "example-page")
+        , Parser.map Login (Parser.s "login")
         , Parser.map NotFound (Parser.s "not-found")
+        , Parser.map Projects (Parser.s "projects")
+        , Parser.map Register (Parser.s "register")
+        , Parser.map Settings (Parser.s "settings")
+        , (Parser.s "profile" </> Parser.string)
+          |> Parser.map (\username -> { username = username })
+          |> Parser.map Profile__Username_String
         ]
 
 
@@ -37,11 +47,23 @@ toString route =
                 Top ->
                     []
                 
-                ExamplePage ->
-                    [ "example-page" ]
+                Login ->
+                    [ "login" ]
                 
                 NotFound ->
                     [ "not-found" ]
+                
+                Projects ->
+                    [ "projects" ]
+                
+                Register ->
+                    [ "register" ]
+                
+                Settings ->
+                    [ "settings" ]
+                
+                Profile__Username_String { username } ->
+                    [ "profile", username ]
     in
     segments
         |> String.join "/"

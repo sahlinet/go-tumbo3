@@ -10,8 +10,12 @@ module Spa.Generated.Pages exposing
     )
 
 import Pages.Top
-import Pages.ExamplePage
+import Pages.Login
 import Pages.NotFound
+import Pages.Projects
+import Pages.Register
+import Pages.Settings
+import Pages.Profile.Username_String
 import Shared
 import Spa.Document as Document exposing (Document)
 import Spa.Generated.Route as Route exposing (Route)
@@ -24,14 +28,22 @@ import Spa.Url as Url
 
 type Model
     = Top__Model Pages.Top.Model
-    | ExamplePage__Model Pages.ExamplePage.Model
+    | Login__Model Pages.Login.Model
     | NotFound__Model Pages.NotFound.Model
+    | Projects__Model Pages.Projects.Model
+    | Register__Model Pages.Register.Model
+    | Settings__Model Pages.Settings.Model
+    | Profile__Username_String__Model Pages.Profile.Username_String.Model
 
 
 type Msg
     = Top__Msg Pages.Top.Msg
-    | ExamplePage__Msg Pages.ExamplePage.Msg
+    | Login__Msg Pages.Login.Msg
     | NotFound__Msg Pages.NotFound.Msg
+    | Projects__Msg Pages.Projects.Msg
+    | Register__Msg Pages.Register.Msg
+    | Settings__Msg Pages.Settings.Msg
+    | Profile__Username_String__Msg Pages.Profile.Username_String.Msg
 
 
 
@@ -44,11 +56,23 @@ init route =
         Route.Top ->
             pages.top.init ()
         
-        Route.ExamplePage ->
-            pages.examplePage.init ()
+        Route.Login ->
+            pages.login.init ()
         
         Route.NotFound ->
             pages.notFound.init ()
+        
+        Route.Projects ->
+            pages.projects.init ()
+        
+        Route.Register ->
+            pages.register.init ()
+        
+        Route.Settings ->
+            pages.settings.init ()
+        
+        Route.Profile__Username_String params ->
+            pages.profile__username_string.init params
 
 
 
@@ -61,11 +85,23 @@ update bigMsg bigModel =
         ( Top__Msg msg, Top__Model model ) ->
             pages.top.update msg model
         
-        ( ExamplePage__Msg msg, ExamplePage__Model model ) ->
-            pages.examplePage.update msg model
+        ( Login__Msg msg, Login__Model model ) ->
+            pages.login.update msg model
         
         ( NotFound__Msg msg, NotFound__Model model ) ->
             pages.notFound.update msg model
+        
+        ( Projects__Msg msg, Projects__Model model ) ->
+            pages.projects.update msg model
+        
+        ( Register__Msg msg, Register__Model model ) ->
+            pages.register.update msg model
+        
+        ( Settings__Msg msg, Settings__Model model ) ->
+            pages.settings.update msg model
+        
+        ( Profile__Username_String__Msg msg, Profile__Username_String__Model model ) ->
+            pages.profile__username_string.update msg model
         
         _ ->
             ( bigModel, Cmd.none )
@@ -81,31 +117,43 @@ bundle bigModel =
         Top__Model model ->
             pages.top.bundle model
         
-        ExamplePage__Model model ->
-            pages.examplePage.bundle model
+        Login__Model model ->
+            pages.login.bundle model
         
         NotFound__Model model ->
             pages.notFound.bundle model
+        
+        Projects__Model model ->
+            pages.projects.bundle model
+        
+        Register__Model model ->
+            pages.register.bundle model
+        
+        Settings__Model model ->
+            pages.settings.bundle model
+        
+        Profile__Username_String__Model model ->
+            pages.profile__username_string.bundle model
 
 
 view : Model -> Document Msg
-view model =
-    (bundle model).view ()
+view =
+    bundle >> .view
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    (bundle model).subscriptions ()
+subscriptions =
+    bundle >> .subscriptions
 
 
 save : Model -> Shared.Model -> Shared.Model
-save model =
-    (bundle model).save ()
+save =
+    bundle >> .save
 
 
 load : Model -> Shared.Model -> ( Model, Cmd Msg )
-load model =
-    (bundle model).load ()
+load =
+    bundle >> .load
 
 
 
@@ -120,10 +168,10 @@ type alias Upgraded params model msg =
 
 
 type alias Bundle =
-    { view : () -> Document Msg
-    , subscriptions : () -> Sub Msg
-    , save : () -> Shared.Model -> Shared.Model
-    , load : () -> Shared.Model -> ( Model, Cmd Msg )
+    { view : Document Msg
+    , subscriptions : Sub Msg
+    , save : Shared.Model -> Shared.Model
+    , load : Shared.Model -> ( Model, Cmd Msg )
     }
 
 
@@ -137,10 +185,10 @@ upgrade toModel toMsg page =
             page.update msg model |> Tuple.mapBoth toModel (Cmd.map toMsg)
 
         bundle_ model =
-            { view = \_ -> page.view model |> Document.map toMsg
-            , subscriptions = \_ -> page.subscriptions model |> Sub.map toMsg
-            , save = \_ -> page.save model
-            , load = \_ -> load_ model
+            { view = page.view model |> Document.map toMsg
+            , subscriptions = page.subscriptions model |> Sub.map toMsg
+            , save = page.save model
+            , load = load_ model
             }
 
         load_ model shared =
@@ -154,11 +202,19 @@ upgrade toModel toMsg page =
 
 pages :
     { top : Upgraded Pages.Top.Params Pages.Top.Model Pages.Top.Msg
-    , examplePage : Upgraded Pages.ExamplePage.Params Pages.ExamplePage.Model Pages.ExamplePage.Msg
+    , login : Upgraded Pages.Login.Params Pages.Login.Model Pages.Login.Msg
     , notFound : Upgraded Pages.NotFound.Params Pages.NotFound.Model Pages.NotFound.Msg
+    , projects : Upgraded Pages.Projects.Params Pages.Projects.Model Pages.Projects.Msg
+    , register : Upgraded Pages.Register.Params Pages.Register.Model Pages.Register.Msg
+    , settings : Upgraded Pages.Settings.Params Pages.Settings.Model Pages.Settings.Msg
+    , profile__username_string : Upgraded Pages.Profile.Username_String.Params Pages.Profile.Username_String.Model Pages.Profile.Username_String.Msg
     }
 pages =
     { top = Pages.Top.page |> upgrade Top__Model Top__Msg
-    , examplePage = Pages.ExamplePage.page |> upgrade ExamplePage__Model ExamplePage__Msg
+    , login = Pages.Login.page |> upgrade Login__Model Login__Msg
     , notFound = Pages.NotFound.page |> upgrade NotFound__Model NotFound__Msg
+    , projects = Pages.Projects.page |> upgrade Projects__Model Projects__Msg
+    , register = Pages.Register.page |> upgrade Register__Model Register__Msg
+    , settings = Pages.Settings.page |> upgrade Settings__Model Settings__Msg
+    , profile__username_string = Pages.Profile.Username_String.page |> upgrade Profile__Username_String__Model Profile__Username_String__Msg
     }

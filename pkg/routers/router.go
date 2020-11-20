@@ -18,6 +18,12 @@ func InitRouter() *echo.Echo {
 	// Middleware
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		//AllowOrigins: []string{"https://labstack.com", "https://labstack.net"},
+		AllowOrigins: []string{"*"},
+		//AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
 
 	e.POST("/auth", api.GetAuth)
 	//e.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -50,6 +56,7 @@ func InitRouter() *echo.Echo {
 
 	}
 
+	e.GET("/*", controllers.StaticFile)
 	//r.Use(gin.Recovery())
 
 	return e

@@ -10,6 +10,7 @@ require (
 	github.com/daaku/go.zipexe v1.0.1 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.10.0
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-ini/ini v1.62.0
 	github.com/go-openapi/spec v0.19.12 // indirect
 	github.com/golang/protobuf v1.4.3
@@ -19,6 +20,7 @@ require (
 	github.com/labstack/gommon v0.3.0
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
+	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/rodaine/table v1.0.1
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/sirupsen/logrus v1.7.0
@@ -30,7 +32,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
-	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
+	golang.org/x/sys v0.0.0-20201118182958-a01c418693c7 // indirect
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.0.0-20201030010431-2feb2bb1ff51 // indirect
 	google.golang.org/grpc v1.27.1

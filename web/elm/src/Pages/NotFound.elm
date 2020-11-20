@@ -1,5 +1,6 @@
 module Pages.NotFound exposing (Model, Msg, Params, page)
 
+import Components.NotFound
 import Html exposing (..)
 import Spa.Document exposing (Document)
 import Spa.Page as Page exposing (Page)
@@ -30,9 +31,9 @@ page =
 
 
 view : Url Params -> Document Msg
-view { params } =
+view _ =
     { title = "404"
     , body =
-        [ text "Not found"
+        [ Components.NotFound.view
         ]
     }

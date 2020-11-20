@@ -21,11 +21,11 @@ import (
 	"github.com/sahlinet/go-tumbo3/pkg/runner/shared"
 )
 
-func GetRunnableForProject(p *models.Service) (SimpleRunnable, error) {
+func GetRunnableForProject(s *models.Service, repo *models.GitRepository) (SimpleRunnable, error) {
 
 	runnable := SimpleRunnable{
-		Name:     "example-plugin-go-grpc-out",
-		Location: "../../examples/example-plugin-go-grpc",
+		Name:     s.Name,
+		Location: repo.Url,
 	}
 
 	return runnable, nil

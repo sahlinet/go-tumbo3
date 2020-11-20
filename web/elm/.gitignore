@@ -1,7 +1,10 @@
 # Folders to ignore
 elm-stuff
-node_modules
+node_modules/*
 #src/Spa/Generated
 
 # MacOS weird stuff
 .DS_Store
+
+
+elm-stuff/

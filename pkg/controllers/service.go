@@ -55,22 +55,28 @@ func GetService(c echo.Context) error {
 }
 
 func ServiceState(c echo.Context) error {
-	projectId := c.Param("projectId")
-	serviceId := strings.TrimLeft(c.Param("serviceId"), "/")
+	projectID := c.Param("projectId")
+	serviceID := strings.TrimLeft(c.Param("serviceId"), "/")
 
 	service := models.Service{}
-	projectIdInt, err := strconv.Atoi(projectId)
-	serviceIdInt, err := strconv.Atoi(serviceId)
+	projectIDInt, err := strconv.Atoi(projectID)
+	serviceIDInt, err := strconv.Atoi(serviceID)
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	err = models.GetService(&service, uint(projectIdInt), uint(serviceIdInt))
+	err = models.GetService(&service, uint(projectIDInt), uint(serviceIDInt))
+	if err != nil {
+		return c.NoContent(http.StatusNotFound)
+	}
+
+	repo := models.GitRepository{}
+	err = models.GetRepositoryForProject(&repo, uint(projectIDInt))
 	if err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	// Get Runnable
-	runnable, err := runner.GetRunnableForProject(&service)
+	runnable, err := runner.GetRunnableForProject(&service, &repo)
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
@@ -85,7 +91,7 @@ func ServiceState(c echo.Context) error {
 		err = runnable.Build(store)
 		if err != nil {
 			log.Error(err)
-			return c.NoContent(http.StatusInternalServerError)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		// Run
@@ -94,7 +100,7 @@ func ServiceState(c echo.Context) error {
 
 		if err != nil {
 			log.Error(err)
-			return c.NoContent(http.StatusInternalServerError)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		// Store informations to reconnect later with reAttachConfig
@@ -108,7 +114,7 @@ func ServiceState(c echo.Context) error {
 		err = models.CreateRunner(&runner, service)
 		if err != nil {
 			log.Error(err)
-			return c.NoContent(http.StatusInternalServerError)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 	}
@@ -119,20 +125,20 @@ func ServiceState(c echo.Context) error {
 		err = models.GetRunner(&r, service)
 		if err != nil {
 			log.Error(err)
-			return c.NoContent(http.StatusInternalServerError)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		var runnable runner.SimpleRunnable
 		err = runnable.Attach(r.Endpoint, r.Pid)
 		if err != nil {
 			log.Error(err)
-			return c.NoContent(http.StatusInternalServerError)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		err = runnable.Stop()
 		if err != nil {
 			log.Error(err)
-			return c.NoContent(http.StatusInternalServerError)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 	}
 

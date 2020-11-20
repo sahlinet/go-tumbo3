@@ -12,7 +12,7 @@
     "build:elm": "elm make src/Main.elm --optimize --output=public/dist/elm.compiled.js",
     "build:dev:elm": "elm make src/Main.elm --debug --output=public/dist/elm.compiled.js || true",
     "build:elm-spa": "elm-spa build .",
-    "dev:elm": "elm-live src/Main.elm -u -d public -- --debug --output=public/dist/elm.compiled.js",
+    "dev:elm": "elm-live src/Main.elm  --port 8001 -u -d public -- --debug --output=public/dist/elm.compiled.js",
     "dev:elm-spa": "chokidar src/Pages -c \"elm-spa build .\""
   },
   "keywords": [],
@@ -22,7 +22,7 @@
     "chokidar-cli": "2.1.0",
     "elm": "0.19.1-3",
     "elm-live": "4.0.2",
-    "elm-spa": "5.0.3",
+    "elm-spa": "5.0.2",
     "elm-test": "0.19.1-revision2",
     "npm-run-all": "4.1.5"
   }

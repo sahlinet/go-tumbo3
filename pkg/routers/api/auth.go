@@ -23,13 +23,21 @@ func GetAuth(c echo.Context) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
 
+	// TODO: Set in debug mode only.
+	c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+
 	token, err := GetToken(username, password, valid, c)
 	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
+		return c.NoContent(http.StatusUnauthorized)
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{
-		"token": token,
+	// TODO: Take dynamic values
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"user": map[string]string{
+			"token":    token,
+			"email":    "philip@sahli.net",
+			"username": username,
+		},
 	})
 }
 

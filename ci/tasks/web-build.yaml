@@ -1,0 +1,23 @@
+---
+platform: linux
+
+inputs:
+  - name: go-tumbo-git
+params:
+  GO111MODULE: "on"
+
+image_resource:
+  type: registry-image
+  source:
+    repository: codesimple/elm
+    tag: 0.19
+
+run:
+  path: /bin/sh
+  args:
+    - -c
+    - |
+      set -e
+      cd go-tumbo-git/web/elm
+      elm make src/Main.elm --output ../static/app.js
+      echo $?
