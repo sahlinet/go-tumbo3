@@ -1,13 +1,13 @@
 ---
 resource_types:
-- name: pull-request
-  type: registry-image
-  source: { repository: teliaoss/github-pr-resource }
+  - name: pull-request
+    type: registry-image
+    source: { repository: teliaoss/github-pr-resource }
 
-- name: slack-notification
-  type: docker-image
-  source:
-    repository: cfcommunity/slack-notification-resource
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
 
 resources:
   - name: go-tumbo3-master
@@ -23,12 +23,12 @@ resources:
       repository: sahlinet/go-tumbo3
       access_token: ((github-access.token))
 
-#  - name: golang-1.14.x-image
-#    type: registry-image
-#    icon: docker
-#    source:
-#      repository: golang
-#      tag: 1.14-stretch
+  #  - name: golang-1.14.x-image
+  #    type: registry-image
+  #    icon: docker
+  #    source:
+  #      repository: golang
+  #      tag: 1.14-stretch
 
   - name: notify
     type: slack-notification
@@ -56,7 +56,7 @@ jobs:
             trigger: true
             version: every
           - get: go-tumbo3-master
-#          - get: golang-1.14.x-image
+      #          - get: golang-1.14.x-image
       - put: concourse-status-update-pending
         resource: go-tumbo3-pr
         inputs: [go-tumbo3-pr]
@@ -71,11 +71,28 @@ jobs:
           put: notify
           params:
             text: |
-               The pipeline $BUILD_PIPELINE_NAME has failed, check:
-               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+              The pipeline $BUILD_PIPELINE_NAME has failed, check:
+              $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
         on_success:
           put: notify
           params:
             text: |
-               The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
-               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+              The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
+              $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+      - task: unit
+        file: go-tumbo3-pr/ci/tasks/web-build.yaml
+        input_mapping:
+          go-tumbo-git: go-tumbo3-pr
+        on_failure:
+          put: notify
+          params:
+            text: |
+              The pipeline $BUILD_PIPELINE_NAME has failed, check:
+              $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        on_success:
+          put: notify
+          params:
+            text: |
+              The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
+              $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
