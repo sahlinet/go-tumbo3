@@ -16,6 +16,7 @@ type Runner struct {
 	Endpoint string `json:"endpoint"`
 	Pid      int
 
+	//ServiceID uint `gorm:"unique"`
 	ServiceID uint
 }
 
@@ -82,6 +83,13 @@ func CreateRunner(r *Runner, service Service) error {
 func GetRunner(runner *Runner, service Service) error {
 	err := db.Where("service_id = ?", service.ID).Find(&runner).Error
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteRunner(id uint) error {
+	if err := db.Where("id = ?", id).Delete(Runner{}).Error; err != nil {
 		return err
 	}
 	return nil

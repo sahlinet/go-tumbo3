@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"path/filepath"
 
 	"gorm.io/gorm"
 
@@ -13,15 +12,15 @@ import (
 
 var (
 	dir, _ = os.Getwd()
-	fp     = filepath.Join(filepath.Dir(dir), "..")
+	fp     = "/Users/philipsahli/workspace/go-tumbo3"
 )
 
-func TestData(db *gorm.DB) {
+func TestData(db *gorm.DB) error {
 
 	project := &models.Project{
 		Name:        "the-project",
 		Description: "a project to test",
-		State:       0,
+		State:       "not started",
 		GitRepository: &models.GitRepository{
 			Url: path.Join(fp, "examples/example-plugin-go-grpc"),
 		},
@@ -42,5 +41,10 @@ func TestData(db *gorm.DB) {
 		log.Fatal(err)
 	}
 
-	db.FirstOrCreate(&project)
+	if err := db.FirstOrCreate(&project).Error; err != nil {
+		// return any error will rollback
+		return err
+	}
+
+	return nil
 }

@@ -163,6 +163,18 @@ func (r SimpleRunnable) Stop() error {
 	return nil
 }
 
+func (r SimpleRunnable) Close() error {
+	c, err := r.Client.Client()
+	if err != nil {
+		return err
+	}
+	err = c.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // handshakeConfigs are used to just do a basic handshake between
 // a plugin and host. If the handshake fails, a user friendly error is shown.
 // This prevents users from executing bad plugins or executing a plugin
@@ -224,7 +236,6 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 
 func (r *SimpleRunnable) Execute(s string) (string, error) {
 
-	/*  */
 	result, err := r.KV.Execute(s)
 	if err != nil {
 		return "", err
@@ -238,31 +249,14 @@ func (r *SimpleRunnable) Execute(s string) (string, error) {
 
 func (r *SimpleRunnable) Attach(endpoint string, pid int) error {
 
-	reattachConfig := plugin.ReattachConfig{
-		Protocol: "grpc",
-		Addr: &net.UnixAddr{
-			Name: endpoint,
-			Net:  "unix",
-		},
-		Pid:  pid,
-		Test: false,
-	}
-	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig: shared.Handshake,
-		Plugins:         shared.PluginMap,
-		Reattach:        &reattachConfig,
-	})
-	log.Info(client)
-
-	r.Client = client
-	c, err := client.Client()
+	c, err := r.GetClient(endpoint, pid)
 	if err != nil {
 		return err
 	}
 
-	err = c.Ping()
+	err = r.Ping(c)
 	if err != nil {
-		return fmt.Errorf("cannot ping, %s", err)
+		return fmt.Errorf("error on r.Ping: %s", err)
 	}
 
 	// Request the plugin
@@ -280,4 +274,41 @@ func (r *SimpleRunnable) Attach(endpoint string, pid int) error {
 
 	return nil
 
+}
+
+func (r *SimpleRunnable) GetClient(endpoint string, pid int) (plugin.ClientProtocol, error) {
+	reattachConfig := plugin.ReattachConfig{
+		Protocol: "grpc",
+		Addr: &net.UnixAddr{
+			Name: endpoint,
+			Net:  "unix",
+		},
+		Pid:  pid,
+		Test: false,
+	}
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig: shared.Handshake,
+		Plugins:         shared.PluginMap,
+		Reattach:        &reattachConfig,
+	})
+	log.Info(client)
+
+	r.Client = client
+
+	if clientProtocol, err := client.Client(); clientProtocol == nil || err != nil {
+		return nil, fmt.Errorf("error in clientProtocol, %s", err)
+	}
+	c, err := client.Client()
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func (r *SimpleRunnable) Ping(c plugin.ClientProtocol) error {
+	err := c.Ping()
+	if err != nil {
+		return fmt.Errorf("cannot ping, %s", err)
+	}
+	return nil
 }

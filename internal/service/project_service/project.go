@@ -9,6 +9,7 @@ type Project struct {
 
 	Title      string
 	Desc       string
+	State      string
 	Content    string
 	CreatedBy  string
 	ModifiedBy string

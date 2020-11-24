@@ -36,10 +36,6 @@ type alias Params =
 type alias Model =
     { user : Maybe User
     , listing : Data (List Api.Project.Project)
-
-    --, page : Int
-    --, tags : Data (List Tag)
-    --, activeTab : Tab
     }
 
 
@@ -88,6 +84,7 @@ fetchProjects model host =
 
 type Msg
     = GotProjects (Data (List Api.Project.Project))
+    | StartProject Api.Project.Project
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -95,6 +92,11 @@ update msg model =
     case msg of
         GotProjects listing ->
             ( { model | listing = listing }
+            , Cmd.none
+            )
+
+        StartProject project ->
+            ( model
             , Cmd.none
             )
 
@@ -129,6 +131,8 @@ view model =
                 [ Components.ProjectList.view
                     { user = model.user
                     , projectListing = model.listing
+
+                    --                    , onStart = StartProject
                     }
                 ]
             ]

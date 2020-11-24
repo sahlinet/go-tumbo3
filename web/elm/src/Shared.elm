@@ -88,10 +88,10 @@ view :
 view { page, toMsg } model =
     { title =
         if String.isEmpty page.title then
-            "Conduit"
+            "Tumbo"
 
         else
-            page.title ++ " | Conduit"
+            page.title ++ " | Tumbo"
     , body =
         [ node "link"
             [ rel "stylesheet"

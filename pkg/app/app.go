@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo"
 
 	"github.com/sahlinet/go-tumbo3/pkg/models"
+	"github.com/sahlinet/go-tumbo3/pkg/operator"
 	"github.com/sahlinet/go-tumbo3/pkg/routers"
 )
 
@@ -15,6 +16,9 @@ type App struct {
 func (a *App) Run() *echo.Echo {
 
 	//gin.SetMode(setting.ServerSetting.RunMode)
+
+	operator := operator.Operator{}
+	go operator.Run()
 
 	routersInit := routers.InitRouter()
 	return routersInit

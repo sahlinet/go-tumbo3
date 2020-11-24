@@ -16,7 +16,6 @@ module Api.Project exposing
 
 -}
 
-import Api.Article.Filters as Filters exposing (Filters)
 import Api.Data exposing (Data)
 import Api.Profile exposing (Profile)
 import Api.Token exposing (Token)
@@ -31,14 +30,16 @@ import Utils.Json exposing (withField)
 type alias Project =
     { name : String
     , description : String
+    , state : String
     }
 
 
 decoder : Json.Decoder Project
 decoder =
-    Json.map2 Project
+    Json.map3 Project
         (Json.field "name" Json.string)
         (Json.field "description" Json.string)
+        (Json.field "state" Json.string)
 
 
 
@@ -54,6 +55,23 @@ list :
 list options =
     Api.Token.get options.token
         { url = options.urlPrefix ++ "/api/v1/projects"
+        , expect =
+            Api.Data.expectJson options.onResponse
+                (Json.list decoder)
+        }
+
+
+start :
+    { token : Maybe Token
+    , urlPrefix : String
+    , projectId : Int
+    , onResponse : Data (List Project) -> msg
+    }
+    -> Cmd msg
+start options =
+    Api.Token.put options.token
+        { url = options.urlPrefix ++ "/projects/" ++ String.fromInt options.projectId ++ "/services/:serviceId/run"
+        , body = Http.emptyBody
         , expect =
             Api.Data.expectJson options.onResponse
                 (Json.list decoder)

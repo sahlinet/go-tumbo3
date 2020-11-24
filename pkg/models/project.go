@@ -11,7 +11,8 @@ type Project struct {
 	Description string `json:"description"`
 	CreatedBy   string `json:"created_by"`
 	ModifiedBy  string `json:"modified_by"`
-	State       int    `json:"state"`
+	State       string `json:"state"`
+	ErrorMsg    string `json:"errormsg"`
 
 	GitRepository *GitRepository
 	Services      []Service
@@ -98,7 +99,7 @@ func AddProject(data map[string]interface{}) error {
 		Name:        data["name"].(string),
 		Description: data["description"].(string),
 		//CreatedBy:   data["created_by"].(string),
-		State: data["state"].(int),
+		State: data["state"].(string),
 	}
 	if err := db.Debug().Create(&project).Error; err != nil {
 		return err
