@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/hashicorp/go-plugin"
@@ -196,11 +197,16 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 
 	pluginExec := path
 
+	process := exec.Command(pluginExec)
+	process.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	//process.SysProcAttr.Setsid = true
+	//syscall.Umask(0)
+
 	// We're a host. Start by launching the plugin process.
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: shared.Handshake,
 		Plugins:         shared.PluginMap,
-		Cmd:             exec.Command(pluginExec),
+		Cmd:             process,
 		AllowedProtocols: []plugin.Protocol{
 			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
 	})
