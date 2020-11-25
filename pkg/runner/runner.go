@@ -55,6 +55,8 @@ type Execute func() string
 func (r SimpleRunnable) Build(store ExecutableStore) error {
 
 	fn := fmt.Sprintf("./%s", r.Name)
+	cwd, _ := os.Getwd()
+	log.Info("current working directory: ", cwd)
 
 	args := []string{"build", fmt.Sprintf("-o=%s", fn), "."}
 	cmd := exec.Command("go", args...)
@@ -297,7 +299,6 @@ func (r *SimpleRunnable) GetClient(endpoint string, pid int) (plugin.ClientProto
 		Plugins:         shared.PluginMap,
 		Reattach:        &reattachConfig,
 	})
-	log.Info(client)
 
 	r.Client = client
 

@@ -103,7 +103,6 @@ func ChangeServiceState(projectID, serviceID int, state string) error {
 
 		// Run
 		endpoint, err := runnable.Run(store)
-		log.Info(endpoint)
 
 		if err != nil {
 			log.Error(err)
@@ -202,7 +201,7 @@ func DeleteRunnerForService(service *models.Service) error {
 	}
 	err = syscall.Kill(r.Pid, 9)
 	if err != nil {
-		log.Info("Not running anymore", err)
+		log.Infof("not running anymore: %s", err)
 	}
 
 	m := models.DeleteRunner(r.ID)

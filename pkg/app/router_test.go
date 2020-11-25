@@ -39,7 +39,7 @@ func init() {
 		},
 	}
 
-	TestData(db)
+	LoadTestData(db)
 
 }
 

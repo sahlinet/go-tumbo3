@@ -6,7 +6,7 @@ import (
 	"github.com/sahlinet/go-tumbo3/pkg/controllers"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 type Operator struct {
@@ -19,10 +19,9 @@ const (
 	Starting = "Starting"
 )
 
-func (o *Operator) Run() {
+func (o *Operator) Run(log *logrus.Entry) {
 	for {
 		time.Sleep(2 * time.Second)
-		log.Info("Run")
 		projects, err := models.GetProjects()
 		if err != nil {
 			log.Error(err)
@@ -32,34 +31,35 @@ func (o *Operator) Run() {
 			if err != nil {
 				log.Error()
 			}
-			log.Infof("Name: %s State: %s", p.Name, p.State)
+			//log.Infof("Name: %s State: %s", p.Name, p.State)
 
-			reconcile(p)
+			reconcile(log, p)
 		}
 
 	}
 }
 
-func reconcile(p *models.Project) {
-	log.Info("Starting reconcile the state is", p.State)
+func reconcile(log *logrus.Entry, p *models.Project) {
+	log.Infof("Starting reconcile %s the state is %s", p.Name, p.State)
 	defer p.Update()
 
 	if p.State == "Running" {
-		r, err := controllers.GetRunner(p.Services[0])
-		runnerModel := &models.Runner{}
-		models.GetRunner(runnerModel, p.Services[0])
+		_, err := controllers.GetRunner(p.Services[0])
 		if err != nil {
+			runnerModel := &models.Runner{}
+			models.GetRunner(runnerModel, p.Services[0])
 			controllers.DeleteRunnerForService(&p.Services[0])
-			log.Error(err)
 			p.State = "Errored"
 			p.ErrorMsg = err.Error()
+			log.Error(err)
 		}
-		log.Debug(r)
+		//log.Debug(r)
 		p.ErrorMsg = ""
 		/*err = r.Close()
 		if err != nil {
 			log.Error(err)
-		}*/
+		}
+		*/
 		return
 
 	}
