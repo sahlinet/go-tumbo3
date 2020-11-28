@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tumbo-server-service
+  namespace: tumbo-dev
+spec:
+  selector:
+    app: tumbo-server
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
