@@ -12,10 +12,10 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fatih/color v1.10.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
+	github.com/go-git/go-git/v5 v5.2.0
 	github.com/go-ini/ini v1.62.0
 	github.com/go-openapi/spec v0.19.12 // indirect
 	github.com/golang/protobuf v1.4.3
-	github.com/gruntwork-io/terratest v0.30.23 // indirect
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/labstack/echo v3.3.10+incompatible

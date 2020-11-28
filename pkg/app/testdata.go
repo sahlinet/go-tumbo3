@@ -7,18 +7,27 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/sahlinet/go-tumbo3/pkg/models"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
+//LoadTestData creates projects as example
 func LoadTestData(db *gorm.DB) error {
 	log.Print("Loading examples into database")
 	return testData(db)
 }
 
-func testData(db *gorm.DB) error {
-	mod := os.Getenv("GOMOD")
-	examplePath := path.Join(filepath.Dir(mod), "../../examples/example-plugin-go-grpc")
+func localTestProject() *models.Project {
+	//mod := os.Getenv("GOMOD")
+	//examplePath := path.Join(filepath.Dir(mod), "../../examples/example-plugin-go-grpc")
+
+	// Depending from where the tests are run, the examples folder is found differently.
+	d, err := lookupExamplesFolder()
+	if err != nil {
+		log.Error(err)
+	}
+	examplePath := path.Join(d, "example-plugin-go-grpc")
 
 	project := &models.Project{
 		Name:        "the-project",
@@ -31,8 +40,28 @@ func testData(db *gorm.DB) error {
 			Name: "service-A",
 		}},
 	}
+	return project
+}
 
-	log.Print(project)
+func lookupExamplesFolder() (string, error) {
+	var d string
+	e := filepath.Walk("../..", func(p string, info os.FileInfo, err error) error {
+		if err == nil && info.Name() == "examples" {
+			println(info.Name())
+			d = path.Join("../..", info.Name())
+		}
+		return nil
+	})
+	if e != nil {
+		log.Fatal(e)
+	}
+	return d, nil
+
+}
+
+func testData(db *gorm.DB) error {
+
+	project := localTestProject()
 
 	err := db.Model(&project).Association("GitRepository").Error
 	if err != nil {

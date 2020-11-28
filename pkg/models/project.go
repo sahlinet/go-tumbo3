@@ -1,6 +1,8 @@
 package models
 
 import (
+	"strings"
+
 	"gorm.io/gorm"
 )
 
@@ -27,6 +29,14 @@ type GitRepository struct {
 
 func (GitRepository) TableName() string {
 	return "git_repositories"
+}
+
+func (g GitRepository) isLocal() bool {
+	return strings.HasPrefix(g.Url, "/")
+}
+
+func (g GitRepository) isGit() bool {
+	return strings.HasSuffix(g.Url, ".git")
 }
 
 // ExistProjectByID checks if an project exists based on ID

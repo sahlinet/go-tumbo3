@@ -73,6 +73,7 @@ func ServiceStateHandler(c echo.Context) error {
 	}
 	projectIDInt, err := strconv.Atoi(projectID)
 	serviceIDInt, err := strconv.Atoi(serviceID)
+
 	err = ChangeServiceState(projectIDInt, serviceIDInt, state)
 	if err != nil && err == ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
@@ -95,11 +96,19 @@ func ChangeServiceState(projectID, serviceID int, state string) error {
 	// Start
 	if state == "Start" {
 
-		err = runnable.Build(store)
+		err := runnable.PrepareSource()
 		if err != nil {
 			log.Error(err)
 			return err
 		}
+
+		buildOutput, err := runnable.Build("/tmp/tumbo-builds")
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+
+		buildOutput.OutputToStore(&store)
 
 		// Run
 		endpoint, err := runnable.Run(store)
