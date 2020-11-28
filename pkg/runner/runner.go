@@ -81,12 +81,18 @@ func (r *SimpleRunnable) PrepareSource() error {
 	}
 
 	if strings.Contains(r.Location, ".git") {
+		// Get dir
+		i := strings.LastIndex(r.Location, "//")
+		pathToSource := r.Location[i:]
+
+		// Strip directory from clone url
+		s.Remote = r.Location[:i]
 
 		p, err := s.Clone()
 		if err != nil {
 			return err
 		}
-		s.CodePath = p
+		s.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
 	} else {
 		s.CodePath = r.Location
 	}
@@ -106,7 +112,11 @@ func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 
 	args := []string{"build", fmt.Sprintf("-o=%s", fn), "."}
 	cmd := exec.Command("go", args...)
-	cmd.Dir = r.Source.CodePath
+	var err error
+	cmd.Dir, err = filepath.Abs(r.Source.CodePath)
+	if err != nil {
+		return output, err
+	}
 	//cmd.Dir = r.Location
 
 	//goPath := os.Getenv("GOPATH")
@@ -126,7 +136,7 @@ func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return output, fmt.Errorf("build error: %s", err)
 	}

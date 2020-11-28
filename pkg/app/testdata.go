@@ -9,6 +9,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/sahlinet/go-tumbo3/internal/util"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
@@ -19,10 +20,6 @@ func LoadTestData(db *gorm.DB) error {
 }
 
 func localTestProject() *models.Project {
-	//mod := os.Getenv("GOMOD")
-	//examplePath := path.Join(filepath.Dir(mod), "../../examples/example-plugin-go-grpc")
-
-	// Depending from where the tests are run, the examples folder is found differently.
 	d, err := lookupExamplesFolder()
 	if err != nil {
 		log.Error(err)
@@ -35,6 +32,21 @@ func localTestProject() *models.Project {
 		State:       "not started",
 		GitRepository: &models.GitRepository{
 			Url: examplePath,
+		},
+		Services: []models.Service{{
+			Name: "service-A",
+		}},
+	}
+	return project
+}
+
+func gitTestProject() *models.Project {
+	project := &models.Project{
+		Name:        "the-project",
+		Description: "a project to test",
+		State:       "not started",
+		GitRepository: &models.GitRepository{
+			Url: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
 		},
 		Services: []models.Service{{
 			Name: "service-A",
@@ -60,8 +72,13 @@ func lookupExamplesFolder() (string, error) {
 }
 
 func testData(db *gorm.DB) error {
+	var project *models.Project
 
-	project := localTestProject()
+	if k8s := util.IsRunningInKubernetes(); k8s {
+		project = gitTestProject()
+	} else {
+		project = localTestProject()
+	}
 
 	err := db.Model(&project).Association("GitRepository").Error
 	if err != nil {

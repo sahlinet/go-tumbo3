@@ -30,14 +30,14 @@ var flagtests = []struct {
 		buildErrorExpected: `# github.com/sahlinet/go-tumbo3/examples/example-plugin-go-grpc-fail
 		./main.go:5:1: syntax error: non-declaration statement outside function body`,
 	},
-	/* 	{
+	{
 		name: "example-git",
 		runnable: SimpleRunnable{
-			Name:     "example-git",
-			Location: "https://github.com/sahlinet/go-tumbo3.git",
+			Name:     "example-plugin-go-grpc",
+			Location: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
 		},
 		buildErrorExpected: "",
-	}, */
+	},
 }
 
 func TestBuildAndRunner(t *testing.T) {
