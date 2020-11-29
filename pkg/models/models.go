@@ -55,11 +55,14 @@ func Setup(repository *Repository) *gorm.DB {
 		log.Fatal(err)
 	}
 	err = db.Table("runners").AutoMigrate(&Runner{})
-	//err = db.AutoMigrate(&Runner{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.Table("executable_store_db_items").AutoMigrate(&ExecutableStoreDbItem{})
+
+	err = db.Table("executable_store_db_items").AutoMigrate(&ExecutableStoreDbItem{})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	//	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
 	//		return setting.DatabaseSetting.TablePrefix + defaultTableName

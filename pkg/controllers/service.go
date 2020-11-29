@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+	"syscall"
 
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
@@ -54,53 +56,66 @@ func GetService(c echo.Context) error {
 
 }
 
-func ServiceState(c echo.Context) error {
+func ServiceStateHandler(c echo.Context) error {
 	projectID := c.Param("projectId")
 	serviceID := strings.TrimLeft(c.Param("serviceId"), "/")
 
-	service := models.Service{}
+	var state string
+	switch state = c.Request().Method; state {
+	case http.MethodPut:
+		state = "Start"
+	case http.MethodDelete:
+		state = "Stop"
+	}
+
+	if state == "" {
+		return c.NoContent(http.StatusInternalServerError)
+	}
 	projectIDInt, err := strconv.Atoi(projectID)
 	serviceIDInt, err := strconv.Atoi(serviceID)
+
+	err = ChangeServiceState(projectIDInt, serviceIDInt, state)
+	if err != nil && err == ErrNotFound {
+		return c.NoContent(http.StatusNotFound)
+
+	}
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	err = models.GetService(&service, uint(projectIDInt), uint(serviceIDInt))
-	if err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
+	return nil
+}
 
-	repo := models.GitRepository{}
-	err = models.GetRepositoryForProject(&repo, uint(projectIDInt))
-	if err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
+var ErrNotFound = errors.New("not found")
 
-	// Get Runnable
-	runnable, err := runner.GetRunnableForProject(&service, &repo)
-	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
-	}
-
-	store := runner.ExecutableStoreFilesystem{
-		Root: "/tmp",
+func ChangeServiceState(projectID, serviceID int, state string) error {
+	service, err, runnable, store, err2, done := GetSimpleRunnable(projectID, serviceID)
+	if done {
+		return err2
 	}
 
 	// Start
-	if c.Request().Method == http.MethodPut {
+	if state == "Start" {
 
-		err = runnable.Build(store)
+		err := runnable.PrepareSource()
 		if err != nil {
 			log.Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return err
 		}
+
+		buildOutput, err := runnable.Build("/tmp/tumbo-builds")
+		if err != nil {
+			log.Error(err)
+			return err
+		}
+
+		buildOutput.OutputToStore(&store)
 
 		// Run
 		endpoint, err := runnable.Run(store)
-		log.Info(endpoint)
 
 		if err != nil {
 			log.Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return err
 		}
 
 		// Store informations to reconnect later with reAttachConfig
@@ -114,33 +129,90 @@ func ServiceState(c echo.Context) error {
 		err = models.CreateRunner(&runner, service)
 		if err != nil {
 			log.Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return err
 		}
 
 	}
 
 	// Stop
-	if c.Request().Method == http.MethodDelete {
+	if state == "Stop" {
 		r := models.Runner{}
 		err = models.GetRunner(&r, service)
 		if err != nil {
 			log.Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return err
 		}
 
 		var runnable runner.SimpleRunnable
 		err = runnable.Attach(r.Endpoint, r.Pid)
 		if err != nil {
 			log.Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return err
 		}
 
 		err = runnable.Stop()
 		if err != nil {
 			log.Error(err)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return err
 		}
 	}
 
 	return nil
+}
+
+func GetRunner(service models.Service) (*runner.SimpleRunnable, error) {
+	r := &models.Runner{}
+	err := models.GetRunner(r, service)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	runnable := runner.SimpleRunnable{}
+	err = runnable.Attach(r.Endpoint, r.Pid)
+	if err != nil {
+		log.Error(err)
+		return &runnable, err
+	}
+	return &runnable, nil
+}
+
+func GetSimpleRunnable(projectID int, serviceID int) (models.Service, error, runner.SimpleRunnable, runner.ExecutableStoreFilesystem, error, bool) {
+	service := models.Service{}
+	err := models.GetService(&service, uint(projectID), uint(serviceID))
+	if err != nil {
+		return models.Service{}, nil, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, err, true
+	}
+
+	repo := models.GitRepository{}
+	err = models.GetRepositoryForProject(&repo, uint(projectID))
+	if err != nil {
+		return models.Service{}, nil, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, ErrNotFound, true
+	}
+
+	// Get Runnable
+	runnable, err := runner.GetRunnableForProject(&service, &repo)
+	if err != nil {
+		return models.Service{}, nil, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, err, true
+	}
+
+	store := runner.ExecutableStoreFilesystem{
+		Root: "/tmp",
+	}
+	return service, err, runnable, store, nil, false
+}
+
+func DeleteRunnerForService(service *models.Service) error {
+	r := models.Runner{}
+	err := models.GetRunner(&r, *service)
+	if err != nil {
+		return err
+	}
+	err = syscall.Kill(r.Pid, 9)
+	if err != nil {
+		log.Infof("not running anymore: %s", err)
+	}
+
+	m := models.DeleteRunner(r.ID)
+	return m
 }

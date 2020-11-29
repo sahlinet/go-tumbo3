@@ -45,6 +45,7 @@ func main() {
 	}
 
 	repository := &models.Repository{Db: db}
+	models.Setup(repository)
 
 	app1 := app.App{
 		Repository: models.Repository{Db: db},
@@ -55,9 +56,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	app.TestData(db)
-
-	models.Setup(repository)
+	app.LoadTestData(db)
 
 	err = app1.Run().Start(":8000")
 	if err != nil {

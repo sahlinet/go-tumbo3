@@ -2,8 +2,10 @@ package app
 
 import (
 	"github.com/labstack/echo"
+	"github.com/sirupsen/logrus"
 
 	"github.com/sahlinet/go-tumbo3/pkg/models"
+	"github.com/sahlinet/go-tumbo3/pkg/operator"
 	"github.com/sahlinet/go-tumbo3/pkg/routers"
 )
 
@@ -15,6 +17,12 @@ type App struct {
 func (a *App) Run() *echo.Echo {
 
 	//gin.SetMode(setting.ServerSetting.RunMode)
+
+	logger := logrus.New()
+	log := logger.WithField("process", "operator")
+
+	operator := operator.Operator{}
+	go operator.Run(log)
 
 	routersInit := routers.InitRouter()
 	return routersInit

@@ -32,10 +32,12 @@ func main() {
 	}
 
 	if *build {
-		err := r.Build(store)
+		buildOutput, err := r.Build("/tmp/tumbo-builds")
 		if err != nil {
 			log.Fatal("no error expected", err)
 		}
+
+		buildOutput.OutputToStore(&store)
 	}
 
 	fmt.Println(r)

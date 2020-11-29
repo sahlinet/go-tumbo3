@@ -1,36 +1,100 @@
 package app
 
 import (
-	"log"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"gorm.io/gorm"
 
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sahlinet/go-tumbo3/internal/util"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
-var (
-	dir, _ = os.Getwd()
-	fp     = filepath.Join(filepath.Dir(dir), "..")
-)
+//LoadTestData creates projects as example
+func LoadTestData(db *gorm.DB) error {
+	log.Print("Loading examples into database")
+	log.Print(os.Getwd())
+	return testData(db)
+}
 
-func TestData(db *gorm.DB) {
+func localTestProject() *models.Project {
+	d, err := lookupExamplesFolder()
+	if err != nil {
+		log.Error(err)
+	}
+	examplePath := path.Join(d, "example-plugin-go-grpc")
 
 	project := &models.Project{
 		Name:        "the-project",
 		Description: "a project to test",
-		State:       0,
+		State:       "not started",
 		GitRepository: &models.GitRepository{
-			Url: path.Join(fp, "examples/example-plugin-go-grpc"),
+			Url: examplePath,
 		},
 		Services: []models.Service{{
 			Name: "service-A",
 		}},
 	}
+	return project
+}
 
-	log.Print(project)
+func gitTestProject() *models.Project {
+	project := &models.Project{
+		Name:        "the-project",
+		Description: "a project to test",
+		State:       "not started",
+		GitRepository: &models.GitRepository{
+			Url: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
+		},
+		Services: []models.Service{{
+			Name: "service-A",
+		}},
+	}
+	return project
+}
+
+func lookupExamplesFolder() (string, error) {
+	var d string
+	w := "../.."
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	// In case of
+	log.Info("current working directory: ", cwd)
+	if strings.HasSuffix(cwd, "go-tumbo3") {
+		w = "."
+		log.Info("Set walk to .")
+	}
+
+	e := filepath.Walk(w, func(p string, info os.FileInfo, err error) error {
+		if err == nil && info.Name() == "examples" {
+			println(info.Name())
+			d = path.Join(w, info.Name())
+		}
+		return nil
+	})
+	if e != nil {
+		log.Fatal(e)
+	}
+	return d, nil
+
+}
+
+func testData(db *gorm.DB) error {
+	var project *models.Project
+
+	if k8s := util.IsRunningInKubernetes(); k8s {
+		project = gitTestProject()
+	} else {
+		project = localTestProject()
+	}
 
 	err := db.Model(&project).Association("GitRepository").Error
 	if err != nil {
@@ -42,5 +106,10 @@ func TestData(db *gorm.DB) {
 		log.Fatal(err)
 	}
 
-	db.FirstOrCreate(&project)
+	if err := db.FirstOrCreate(&project).Error; err != nil {
+		// return any error will rollback
+		return err
+	}
+
+	return nil
 }

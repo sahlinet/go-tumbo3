@@ -1,4 +1,6 @@
-FROM scratch
+FROM golang:alpine
+
+RUN apk add git
 
 COPY tumbo /goapp
 

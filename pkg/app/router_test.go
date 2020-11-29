@@ -39,7 +39,7 @@ func init() {
 		},
 	}
 
-	TestData(db)
+	LoadTestData(db)
 
 }
 
@@ -68,7 +68,8 @@ func TestServer(t *testing.T) {
   "description": "a project to test",
   "created_by": "",
   "modified_by": "",
-  "state": 0,
+  "state": "not started",
+  "errormsg": "",
   "GitRepository": null,
   "Services": null
  }

@@ -3,6 +3,8 @@ package runner
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/kylelemons/godebug/diff"
 )
 
@@ -28,6 +30,14 @@ var flagtests = []struct {
 		buildErrorExpected: `# github.com/sahlinet/go-tumbo3/examples/example-plugin-go-grpc-fail
 		./main.go:5:1: syntax error: non-declaration statement outside function body`,
 	},
+	{
+		name: "example-git",
+		runnable: SimpleRunnable{
+			Name:     "example-plugin-go-grpc",
+			Location: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
+		},
+		buildErrorExpected: "",
+	},
 }
 
 func TestBuildAndRunner(t *testing.T) {
@@ -36,14 +46,21 @@ func TestBuildAndRunner(t *testing.T) {
 
 			r := tt.runnable
 
+			// Define this the same as
 			store := ExecutableStoreFilesystem{
 				Root: "/tmp",
 			}
 
-			err := r.Build(&store)
+			err := r.PrepareSource()
+			assert.Nil(t, err)
+
+			buildOutput, err := r.Build("/tmp/tumbo-builds")
 			if err != nil && err.Error() != tt.buildErrorExpected {
 				t.Errorf("expected build error wrong, diff:\n %s", diff.Diff(err.Error(), tt.buildErrorExpected))
 			}
+
+			err = buildOutput.OutputToStore(&store)
+			assert.Nil(t, err)
 
 			if tt.buildErrorExpected == "" {
 
