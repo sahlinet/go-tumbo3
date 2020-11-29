@@ -1,4 +1,4 @@
-package main
+package integrationtests
 
 import (
 	"fmt"
@@ -9,9 +9,10 @@ import (
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestKubernetesHelloWorldExample(t *testing.T) {
+func TestKubernetesDeployment(t *testing.T) {
 	t.Parallel()
 
 	nameSuffix := strings.ToLower(random.UniqueId())
@@ -25,14 +26,24 @@ func TestKubernetesHelloWorldExample(t *testing.T) {
 		k8s.CreateNamespace(t, options, namespaceName)
 	}
 
+	defer k8s.DeleteNamespace(t, options, namespaceName)
 	defer k8s.KubectlDelete(t, options, kubeResourcePath)
 	k8s.KubectlApply(t, options, kubeResourcePath)
 
 	serviceName := "tumbo-server-service"
-	k8s.WaitUntilServiceAvailable(t, options, serviceName, 10, 1*time.Second)
+	k8s.WaitUntilServiceAvailable(t, options, serviceName, 30, 1*time.Second)
 
-	service := k8s.GetService(t, options, serviceName)
-	url := fmt.Sprintf("http://%s", k8s.GetServiceEndpoint(t, options, service, 8000))
+	time.Sleep(20 * time.Second)
+	tunnel := k8s.NewTunnel(options, k8s.ResourceTypeService, serviceName, 8000, 8000)
+	err = tunnel.ForwardPortE(t)
+	if err != nil {
+		t.Error(err)
+	}
+	url := fmt.Sprintf("http://localhost:%s/", "8000")
 
-	http_helper.HttpGetWithRetry(t, url, nil, 200, "Tumbo", 30, 3*time.Second)
+	err = http_helper.HttpGetWithRetryWithCustomValidationE(t, url, nil, 20, 2*time.Second, func(statusCode int, body string) bool {
+		return strings.Contains(body, "Tumbo")
+	})
+	assert.Nil(t, err)
+
 }

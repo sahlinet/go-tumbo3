@@ -28,7 +28,7 @@ data:
       Type = postgres
       User = postgres
       Password = mysecretpassword
-      Host = db-service.tumbo-dev.svc.cluster.local
+      Host = db-service
       Port = 5432
       Name = postgres
       TablePrefix = blog_
