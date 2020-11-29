@@ -80,6 +80,33 @@ jobs:
               The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
 
+  - name: elm
+    public: true
+    max_in_flight: 3
+    on_failure:
+      put: go-tumbo3-pr
+      inputs: [go-tumbo3-pr]
+      params: { path: go-tumbo3-pr, status: failure, context: unit }
+
+      get_params: { skip_download: true }
+    on_success:
+      put: go-tumbo3-pr
+      inputs: [go-tumbo3-pr]
+      params: { path: go-tumbo3-pr, status: success, context: unit }
+      get_params: { skip_download: true }
+    plan:
+      - in_parallel:
+          - get: go-tumbo3-pr
+            trigger: true
+            version: every
+          - get: go-tumbo3-master
+      #          - get: golang-1.14.x-image
+      - put: concourse-status-update-pending
+        resource: go-tumbo3-pr
+        inputs: [go-tumbo3-pr]
+        params: { path: go-tumbo3-pr, status: pending, context: build-elm }
+        get_params: { list_changed_files: true, skip_download: true }
+
       - task: build-elm
         file: go-tumbo3-pr/ci/tasks/web-build.yaml
         input_mapping:
