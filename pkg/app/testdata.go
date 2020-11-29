@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"gorm.io/gorm"
 
@@ -16,6 +17,7 @@ import (
 //LoadTestData creates projects as example
 func LoadTestData(db *gorm.DB) error {
 	log.Print("Loading examples into database")
+	log.Print(os.Getwd())
 	return testData(db)
 }
 
@@ -57,10 +59,24 @@ func gitTestProject() *models.Project {
 
 func lookupExamplesFolder() (string, error) {
 	var d string
-	e := filepath.Walk("../..", func(p string, info os.FileInfo, err error) error {
+	w := "../.."
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	// In case of
+	log.Info("current working directory: ", cwd)
+	if strings.HasSuffix(cwd, "go-tumbo3") {
+		w = "."
+		log.Info("Set walk to .")
+	}
+
+	e := filepath.Walk(w, func(p string, info os.FileInfo, err error) error {
 		if err == nil && info.Name() == "examples" {
 			println(info.Name())
-			d = path.Join("../..", info.Name())
+			d = path.Join(w, info.Name())
 		}
 		return nil
 	})
