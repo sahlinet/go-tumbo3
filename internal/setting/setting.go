@@ -44,8 +44,8 @@ type Database struct {
 }
 
 var DatabaseSetting = &Database{
-	//SslMode: "require",
-	SslMode: "disable",
+	SslMode: "require",
+	//SslMode: "disable",
 }
 
 type Redis struct {
