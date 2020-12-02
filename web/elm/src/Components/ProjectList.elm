@@ -51,13 +51,30 @@ viewProject :
 
 
 viewProject listing =
-    div [ class "highlight col-md-4" ]
+    div [ class "highlight col-md-10" ]
         [ h5 []
             [ text listing.name ]
         , button [ class "btn btn-outline-secondary btn-xs pull-right", type_ "button" ]
             --, button [ class "btn btn-outline-secondary btn-xs pull-right", type_ "button", onClick options.onStart ]
             [ text "Start" ]
         , p [] [ text listing.description ]
+        , p [] [ text listing.gitrepository.url ]
         , span [ class "badge badge-pill badge-secondary" ]
             [ text listing.state ]
+        , viewErrorDiv listing
+
+        --        , div [ class "alert alert-warning" ]
+        --            [ text listing.errormsg
+        --            ]
         ]
+
+
+viewErrorDiv : Project -> Html msg
+viewErrorDiv listing =
+    if String.length listing.errormsg > 0 then
+        div [ class "alert alert-warning" ]
+            [ text listing.errormsg
+            ]
+
+    else
+        text ""

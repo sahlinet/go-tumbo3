@@ -3,6 +3,7 @@ package models
 import (
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -16,14 +17,14 @@ type Project struct {
 	State       string `json:"state"`
 	ErrorMsg    string `json:"errormsg"`
 
-	GitRepository *GitRepository
-	Services      []Service
+	GitRepository *GitRepository `json:"gitrepository"`
+	Services      []Service      `json:"services"`
 }
 
 type GitRepository struct {
 	Model
 
-	Url       string `gorm:"column:url"`
+	Url       string `gorm:"column:url" json:"url"`
 	ProjectID uint
 }
 
@@ -70,7 +71,7 @@ func GetProjectTotal() (int64, error) {
 func GetProjects() ([]*Project, error) {
 	var projects []*Project
 	//err := db.Offset(pageNum).Limit(pageSize).Find(&projects).Error
-	err := db.Find(&projects).Error
+	err := db.Preload("GitRepository").Preload("Services").Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -86,7 +87,12 @@ func GetProject(id uint) (*Project, error) {
 		return nil, err
 	}
 
-	//	err = db.Model(&article).Related(&article.Tag).Error
+	return &project, nil
+}
+
+func GetProjectByName(name string) (*Project, error) {
+	var project Project
+	err := db.Preload("GitRepository").Preload("Services").Where("name = ?", name).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -126,6 +132,37 @@ func (project *Project) Update() error {
 	}
 
 	return nil
+}
+
+func (project *Project) CreateOrUpdate() error {
+	err := db.Model(&project).Association("GitRepository").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Model(&project).Association("Services").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	p, err := GetProjectByName(project.Name)
+	log.Info(p, err)
+	if p.Name != "" {
+
+		err := p.Update()
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	err = db.Create(&project).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 // Deleteproject delete a single article

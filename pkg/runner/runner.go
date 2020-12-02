@@ -55,7 +55,17 @@ type BuildOutput struct {
 	Path string
 }
 
+func (o *BuildOutput) Clean() error {
+	err := os.Remove(o.Path)
+	if err != nil {
+		log.Error(err)
+	}
+	return err
+}
+
+// OutputToStore puts the file into the store
 func (o *BuildOutput) OutputToStore(store *ExecutableStoreFilesystem) error {
+	defer o.Clean()
 	f, err := ioutil.ReadFile(o.Path)
 	if err != nil {
 		return err
@@ -75,36 +85,37 @@ func (s *SimpleRunnable) FilePath() string {
 
 type Execute func() string
 
-func (r *SimpleRunnable) PrepareSource() error {
-	s := source.Source{
-		Remote: r.Location,
+func (s *SimpleRunnable) PrepareSource() error {
+	source := source.Source{
+		Remote: s.Location,
 	}
 
-	if strings.Contains(r.Location, ".git") {
+	if strings.Contains(s.Location, ".git") {
 		// Get dir
-		i := strings.LastIndex(r.Location, "//")
-		pathToSource := r.Location[i:]
+		i := strings.LastIndex(s.Location, "//")
+		pathToSource := s.Location[i:]
 
 		// Strip directory from clone url
-		s.Remote = r.Location[:i]
+		source.Remote = s.Location[:i]
 
-		p, err := s.Clone()
+		p, err := source.Clone()
 		if err != nil {
 			return err
 		}
-		s.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
+		source.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
 	} else {
-		s.CodePath = r.Location
+		source.CodePath = s.Location
 	}
-	r.Source = s
+	s.Source = source
 
 	return nil
 }
 
-func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
+// Build executes a go build on the provided directory with a Go module.
+func (s SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 	// Define output
 	var output BuildOutput
-	fn := path.Join(buildOutputDir, r.FilePath())
+	fn := path.Join(buildOutputDir, s.FilePath())
 	output.Path = fn
 
 	cwd, _ := os.Getwd()
@@ -113,13 +124,11 @@ func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 	args := []string{"build", fmt.Sprintf("-o=%s", fn), "."}
 	cmd := exec.Command("go", args...)
 	var err error
-	cmd.Dir, err = filepath.Abs(r.Source.CodePath)
+	cmd.Dir, err = filepath.Abs(s.Source.CodePath)
 	if err != nil {
 		return output, err
 	}
-	//cmd.Dir = r.Location
 
-	//goPath := os.Getenv("GOPATH")
 	goPath := ""
 	if goPath == "" {
 		goPath = build.Default.GOPATH
@@ -145,8 +154,6 @@ func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 		log.Print(err)
 	}
 
-	//defer os.Remove(r.FilePath())
-
 	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 
 	if errStr != "" {
@@ -161,8 +168,8 @@ type Response struct {
 	String string
 }
 
-func (r *SimpleRunnable) IsUp() (bool, error) {
-	if r.Client == nil {
+func (s *SimpleRunnable) IsUp() (bool, error) {
+	if s.Client == nil {
 		return false, errors.New("down")
 	}
 	log.Println("Run IsUp")
@@ -174,16 +181,16 @@ type RunnableEndpoint struct {
 	Pid  int
 }
 
-func (r *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
+func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 
 	ac := make(chan *plugin.ReattachConfig)
 
-	path := store.GetPath(r.Name)
-	go r.RunPlugin(path, ac)
+	path := store.GetPath(s.Name)
+	go s.RunPlugin(path, ac)
 
 	err := try.Do(func(attempt int) (bool, error) {
 		var err error
-		_, err = r.IsUp()
+		_, err = s.IsUp()
 		if err != nil {
 			time.Sleep(1 * time.Second)
 		}

@@ -1,8 +1,8 @@
 module Api.Project exposing
-    ( decoder
-    , list
+    ( list
     ,  Project
        --updateArticle
+      , projectDecoder
 
     )
 
@@ -31,15 +31,30 @@ type alias Project =
     { name : String
     , description : String
     , state : String
+    , errormsg : String
+    , gitrepository : GitRepository
     }
 
 
-decoder : Json.Decoder Project
-decoder =
-    Json.map3 Project
+type alias GitRepository =
+    { url : String
+    }
+
+
+projectDecoder : Json.Decoder Project
+projectDecoder =
+    Json.map5 Project
         (Json.field "name" Json.string)
         (Json.field "description" Json.string)
         (Json.field "state" Json.string)
+        (Json.field "errormsg" Json.string)
+        (Json.field "gitrepository" gitRepositoryDecoder)
+
+
+gitRepositoryDecoder : Json.Decoder GitRepository
+gitRepositoryDecoder =
+    Json.map GitRepository
+        (Json.field "url" Json.string)
 
 
 
@@ -57,7 +72,7 @@ list options =
         { url = options.urlPrefix ++ "/api/v1/projects"
         , expect =
             Api.Data.expectJson options.onResponse
-                (Json.list decoder)
+                (Json.list projectDecoder)
         }
 
 
@@ -74,5 +89,5 @@ start options =
         , body = Http.emptyBody
         , expect =
             Api.Data.expectJson options.onResponse
-                (Json.list decoder)
+                (Json.list projectDecoder)
         }

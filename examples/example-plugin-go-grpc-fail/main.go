@@ -17,7 +17,7 @@ func (KV) Execute(key string) ([]byte, error) {
 
 func main() {
 	plugin.Serve(&plugin.ServeConfig{
-		HandshakeConfig: shared.Handshake,
+		HandshakeConfig: shared.Handshak,
 		Plugins: map[string]plugin.Plugin{
 			"kv": &shared.KVGRPCPlugin{Impl: &KV{}},
 		},

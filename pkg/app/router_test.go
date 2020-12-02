@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -70,9 +71,53 @@ func TestServer(t *testing.T) {
   "modified_by": "",
   "state": "not started",
   "errormsg": "",
-  "GitRepository": null,
-  "Services": null
- }
+  "gitrepository": {
+    "created_on": 0,
+    "modified_on": 0,
+    "deleted_on": 0,
+    "id": 1,
+    "url": "../../examples/example-plugin-go-grpc",
+    "ProjectID": 1
+   },
+  "services": [{
+      "created_on": 0,
+    "modified_on": 0,
+    "deleted_on": 0,
+    "id": 1,
+    "Name": "service-A",
+    "ProjectID": 1,
+    "Runners": null
+   }]
+  },
+ {
+     "created_on": 0,
+  "modified_on": 0,
+  "deleted_on": 0,
+  "id": 2,
+  "name": "failing application",
+  "description": "an application that fails",
+  "created_by": "",
+  "modified_by": "",
+  "state": "not started",
+  "errormsg": "",
+  "gitrepository": {
+	"created_on": 0,
+	"modified_on": 0,
+	"deleted_on": 0,
+	"id": 2,
+	"url": "../../examples/example-plugin-go-grpc-fail",
+	"ProjectID": 2
+   },
+  "services": [{
+    "created_on": 0,
+    "modified_on": 0,
+    "deleted_on": 0,
+    "id": 2,
+    "Name": "service-B",
+    "ProjectID": 2,
+    "Runners": null
+    }]
+}
 ]
 `,
 		},
@@ -89,7 +134,7 @@ func TestServer(t *testing.T) {
   "Name": "service-A",
   "ProjectID": 1,
   "Runners": null
- }
+}
 ]
 `,
 		},
@@ -208,8 +253,15 @@ func TestServer(t *testing.T) {
 				if err != nil {
 					log.Fatal(err)
 				}
-				bodyString := string(bodyBytes)
-				assert.Equal(t, tt.expectedMessage, bodyString)
+				if strings.Contains(resp.Header.Get("Content-Type"), "application/json") {
+					prettyBodyString := string(pretty(bodyBytes))
+					prettyBodyStringExpected := string(pretty([]byte(tt.expectedMessage)))
+					assert.Equal(t, prettyBodyStringExpected, prettyBodyString)
+				} else {
+
+					assert.Equal(t, tt.expectedMessage, string(bodyBytes))
+				}
+
 			}
 
 			assert.Nil(t, err)
@@ -217,4 +269,22 @@ func TestServer(t *testing.T) {
 		})
 	}
 
+}
+
+func pretty(b []byte) []byte {
+
+	var prettyJSON bytes.Buffer
+	err := json.Indent(&prettyJSON, b, "", "  ")
+	s := string(b)
+	log.Print(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	r, err := ioutil.ReadAll(&prettyJSON)
+	if err != nil {
+		log.Print("Parsing error: ", prettyJSON)
+		log.Fatal(err)
+	}
+	return r
 }

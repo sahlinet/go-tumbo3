@@ -28,7 +28,7 @@ var flagtests = []struct {
 			Location: "../../examples/example-plugin-go-grpc-fail",
 		},
 		buildErrorExpected: `# github.com/sahlinet/go-tumbo3/examples/example-plugin-go-grpc-fail
-		./main.go:5:1: syntax error: non-declaration statement outside function body`,
+./main.go:20:20: undefined: shared.Handshak`,
 	},
 	{
 		name: "example-git",
@@ -59,10 +59,10 @@ func TestBuildAndRunner(t *testing.T) {
 				t.Errorf("expected build error wrong, diff:\n %s", diff.Diff(err.Error(), tt.buildErrorExpected))
 			}
 
-			err = buildOutput.OutputToStore(&store)
-			assert.Nil(t, err)
-
 			if tt.buildErrorExpected == "" {
+
+				err = buildOutput.OutputToStore(&store)
+				assert.Nil(t, err)
 
 				endpoint, err := r.Run(&store)
 				if err != nil {
