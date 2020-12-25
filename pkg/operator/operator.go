@@ -13,10 +13,14 @@ type Operator struct {
 }
 
 const (
+	Building = "Building"
 	Running  = "Running"
 	Stopped  = "Stopped"
 	Errored  = "Errored"
 	Starting = "Starting"
+	Backoff  = "Backoff"
+
+	Retries = 5
 )
 
 func (o *Operator) Run(log *logrus.Entry) {
@@ -43,38 +47,46 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 	log.Infof("Starting reconcile %s the state is %s", p.Name, p.State)
 	defer p.Update()
 
-	if p.State == "Running" {
-		_, err := controllers.GetRunner(p.Services[0])
+	if p.State == Backoff {
+		log.Info("Ignore because the state is ", Backoff)
+		return
+	}
+
+	if p.State == Running {
+		_, err := controllers.GetRunner(*p)
 		if err != nil {
 			runnerModel := &models.Runner{}
-			models.GetRunner(runnerModel, p.Services[0])
-			controllers.DeleteRunnerForService(&p.Services[0])
-			p.State = "Errored"
+			models.GetRunner(runnerModel, *p)
+			controllers.DeleteRunnerForService(p)
+			p.State = Errored
 			p.ErrorMsg = err.Error()
 			log.Error(err)
 		}
-		//log.Debug(r)
+
 		p.ErrorMsg = ""
-		/*err = r.Close()
-		if err != nil {
-			log.Error(err)
-		}
-		*/
+
 		return
 
 	}
 
-	if p.State != "Running" {
+	if p.State != Running {
+		// TODO: reset Backoff when code is changed
+		if p.BuildRetries == Retries {
+			p.State = Backoff
+			return
+		}
 		log.Info("Must start", p)
-		err := controllers.ChangeServiceState(int(p.ID), int(p.Services[0].ID), "Start")
+		p.UpdateStateInDB(Building)
+		err := controllers.ProjectServiceState(int(p.ID), "Start")
 		if err != nil {
 			log.Error(err)
-			p.State = "Errored"
+			p.State = Errored
 			p.ErrorMsg = err.Error()
+			p.BuildRetries = p.BuildRetries + 1
 			return
 		}
 
-		p.State = "Running"
+		p.State = Running
 		p.ErrorMsg = ""
 	}
 

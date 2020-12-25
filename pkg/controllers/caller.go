@@ -14,20 +14,16 @@ import (
 func ServiceCaller(c echo.Context) error {
 
 	projectId := c.Param("projectId")
-	serviceId := c.Param("serviceId")
-
-	service := models.Service{}
 
 	projectIdInt, err := strconv.Atoi(projectId)
-	serviceIdInt, err := strconv.Atoi(serviceId)
 
-	err = models.GetService(&service, uint(projectIdInt), uint(serviceIdInt))
+	project, err := models.GetProject(uint(projectIdInt))
 	if err != nil {
 		return c.NoContent(http.StatusNotFound)
 	}
 
 	r := models.Runner{}
-	err = models.GetRunner(&r, service)
+	err = models.GetRunner(&r, *project)
 	if err != nil {
 		log.Error(err)
 		return c.String(http.StatusInternalServerError, err.Error())

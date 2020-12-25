@@ -40,9 +40,6 @@ func localTestProjects() []*models.Project {
 		GitRepository: &models.GitRepository{
 			Url: examplePath,
 		},
-		Services: []models.Service{{
-			Name: "service-A",
-		}},
 	})
 
 	examplePath = path.Join(d, "example-plugin-go-grpc-fail")
@@ -57,9 +54,6 @@ func localTestProjects() []*models.Project {
 		GitRepository: &models.GitRepository{
 			Url: examplePath,
 		},
-		Services: []models.Service{{
-			Name: "service-B",
-		}},
 	})
 	return projects
 }
@@ -74,9 +68,6 @@ func gitTestProjects() []*models.Project {
 		GitRepository: &models.GitRepository{
 			Url: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
 		},
-		Services: []models.Service{{
-			Name: "service-A",
-		}},
 	})
 	return projects
 

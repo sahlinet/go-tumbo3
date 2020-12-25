@@ -28,9 +28,6 @@ func TestModelProject(t *testing.T) {
 	err := db.Model(&project).Association("GitRepository").Error
 	assert.Nil(t, err)
 
-	err = db.Model(&project).Association("Services").Error
-	assert.Nil(t, err)
-
 	if err := db.Create(&project).Error; err != nil {
 		t.Error(err)
 	}
@@ -49,32 +46,13 @@ func TestModelProject(t *testing.T) {
 
 	assert.Equal(t, "new-url", projectLoaded.GitRepository.Url)
 
-	// Create Service
-	service, err := NewServiceForProject(projectLoaded, "service-name")
-	assert.Nil(t, err)
-	t.Log(service)
-
-	// Query Service over project
-	projectLoaded, err = GetProject(1)
-	if len(projectLoaded.Services) < 1 {
-		t.Fatal("Service expected")
-	}
-
-	assert.Equal(t, "service-name", projectLoaded.Services[0].Name)
-
-	// Query Service by projectId
-	services := make([]Service, 0)
-	err = GetAllServicesForProject(&services, projectLoaded.ID)
-	assert.Nil(t, err)
-	assert.Len(t, services, 1)
-
-	// Create Runner for Service
+	// Create Runner for for project
 	runner := Runner{
 		Endpoint: "the-endpoint",
 		Pid:      111,
 	}
 	log.Debug(runner)
 
-	err = CreateRunner(&runner, services[0])
+	err = CreateRunner(&runner, project)
 	assert.Nil(t, err)
 }

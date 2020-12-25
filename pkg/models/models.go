@@ -50,10 +50,6 @@ func Setup(repository *Repository) *gorm.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.Table("services").AutoMigrate(&Service{})
-	if err != nil {
-		log.Fatal(err)
-	}
 	err = db.Table("runners").AutoMigrate(&Runner{})
 	if err != nil {
 		log.Fatal(err)
@@ -170,5 +166,8 @@ func InitTestDB(name string) *gorm.DB {
 }
 
 func DestroyTestDB(name string) {
-	os.Remove(fmt.Sprintf("gorm-%s.db", name))
+	err := os.Remove(fmt.Sprintf("gorm-%s.db", name))
+	if err != nil {
+		log.Error(err)
+	}
 }

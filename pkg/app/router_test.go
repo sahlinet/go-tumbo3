@@ -19,25 +19,18 @@ import (
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
-/*func init() {
-	setting.Setup()
-	models.Setup()
-	logging.Setup()
-	gredis.Setup()
-	util.Setup()
-}
-*/
-
 var db *sql.DB
 var err error
 var app App
 
 func init() {
 	db := models.InitTestDB("server")
+
 	app = App{
 		Repository: models.Repository{
 			Db: db,
 		},
+		Store: models.ExecutableStoreDb{},
 	}
 
 	LoadTestData(db)
@@ -71,6 +64,7 @@ func TestServer(t *testing.T) {
   "modified_by": "",
   "state": "not started",
   "errormsg": "",
+  "retry": 0,
   "gitrepository": {
     "created_on": 0,
     "modified_on": 0,
@@ -79,15 +73,7 @@ func TestServer(t *testing.T) {
     "url": "../../examples/example-plugin-go-grpc",
     "ProjectID": 1
    },
-  "services": [{
-      "created_on": 0,
-    "modified_on": 0,
-    "deleted_on": 0,
-    "id": 1,
-    "Name": "service-A",
-    "ProjectID": 1,
-    "Runners": null
-   }]
+"runner": null
   },
  {
      "created_on": 0,
@@ -100,6 +86,7 @@ func TestServer(t *testing.T) {
   "modified_by": "",
   "state": "not started",
   "errormsg": "",
+  "retry": 0,
   "gitrepository": {
 	"created_on": 0,
 	"modified_on": 0,
@@ -108,65 +95,92 @@ func TestServer(t *testing.T) {
 	"url": "../../examples/example-plugin-go-grpc-fail",
 	"ProjectID": 2
    },
-  "services": [{
-    "created_on": 0,
-    "modified_on": 0,
-    "deleted_on": 0,
-    "id": 2,
-    "Name": "service-B",
-    "ProjectID": 2,
-    "Runners": null
-    }]
+"runner": null
 }
 ]
 `,
 		},
 		{
-			url:                "/api/v1/projects/1/services",
+			url:                "/api/v1/projects/1",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
-			expectedMessage: `[
- {
-  "created_on": 0,
-  "modified_on": 0,
-  "deleted_on": 0,
-  "id": 1,
-  "Name": "service-A",
-  "ProjectID": 1,
-  "Runners": null
-}
-]
-`,
-		},
-		{
-			url:                "/api/v1/projects/1/services/1",
-			method:             "GET",
-			expectedHTTPStatus: http.StatusOK,
-			expectedMessage: `{
+			expectedMessage: `
+{
  "created_on": 0,
  "modified_on": 0,
  "deleted_on": 0,
  "id": 1,
- "Name": "service-A",
- "ProjectID": 1,
- "Runners": null
+ "name": "the-project",
+ "description": "a project to test",
+ "created_by": "",
+ "modified_by": "",
+ "state": "not started",
+ "errormsg": "",
+ "retry": 0,
+ "gitrepository": {
+  "created_on": 0,
+  "modified_on": 0,
+  "deleted_on": 0,
+  "id": 1,
+  "url": "../../examples/example-plugin-go-grpc",
+  "ProjectID": 1
+ },
+ "runner": null
 }
 `,
 		},
 		{
-			url:                "/api/v1/projects/1/services/1/run",
+			url:                "/api/v1/projects/1",
+			method:             "GET",
+			expectedHTTPStatus: http.StatusOK,
+			expectedMessage: `{
+"created_on": 0,
+"modified_on": 0,
+"deleted_on": 0,
+"id": 1,
+"name": "the-project",
+"description": "a project to test",
+"created_by": "",
+"modified_by": "",
+"state": "not started",
+"errormsg": "",
+"retry": 0,
+"gitrepository": {
+"created_on": 0,   
+"modified_on": 0,
+"deleted_on": 0,
+"id": 1,
+"url": "../../examples/example-plugin-go-grpc",
+"ProjectID": 1},
+"runner": null}
+`,
+		},
+		{
+			url:                "/api/v1/projects/1/run",
 			method:             "PUT",
 			expectedHTTPStatus: http.StatusOK,
 			expectedMessage:    "",
 		},
 		{
-			url:                "/api/v1/projects/1/services/1/call",
+			url:                "/api/v1/projects/1/call",
 			method:             "GET",
 			expectedHTTPStatus: http.StatusOK,
 			expectedMessage:    "Hello hello",
 		},
+		/*		{
+				url:                "/public/v1/projects/1",
+				method:             "GET",
+				expectedHTTPStatus: http.StatusOK,
+				expectedMessage:    "Hello hello",
+			},*/
+		/*		{
+				url:                "/public/v1/projects/1/index.html",
+				method:             "GET",
+				expectedHTTPStatus: http.StatusOK,
+				expectedMessage:    "<html>",
+			},*/
 		{
-			url:                "/api/v1/projects/1/services/1/run",
+			url:                "/api/v1/projects/1/run",
 			method:             "DELETE",
 			expectedHTTPStatus: http.StatusOK,
 			expectedMessage:    "",
@@ -200,10 +214,10 @@ func TestServer(t *testing.T) {
 	defer ts.Close()
 
 	for _, tt := range tests {
-		t.Run(tt.url, func(t *testing.T) {
+		t.Run(tt.url+tt.method, func(t *testing.T) {
 
-			loginUrl := fmt.Sprintf("%s%s", ts.URL, "/auth")
-			token, err := client.Auth(loginUrl, "user1", "password")
+			loginURL := fmt.Sprintf("%s%s", ts.URL, "/auth")
+			token, err := client.Auth(loginURL, "user1", "password")
 			if err != nil {
 				t.Error(err)
 			}
@@ -245,6 +259,8 @@ func TestServer(t *testing.T) {
 
 			if resp.StatusCode != tt.expectedHTTPStatus {
 				t.Errorf("Did not get expected HTTP status code %d, got %d", tt.expectedHTTPStatus, resp.StatusCode)
+				body, _ := ioutil.ReadAll(resp.Body)
+				t.Log(body)
 			}
 
 			if tt.expectedMessage != "" {
@@ -258,7 +274,6 @@ func TestServer(t *testing.T) {
 					prettyBodyStringExpected := string(pretty([]byte(tt.expectedMessage)))
 					assert.Equal(t, prettyBodyStringExpected, prettyBodyString)
 				} else {
-
 					assert.Equal(t, tt.expectedMessage, string(bodyBytes))
 				}
 

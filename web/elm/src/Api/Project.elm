@@ -85,7 +85,7 @@ start :
     -> Cmd msg
 start options =
     Api.Token.put options.token
-        { url = options.urlPrefix ++ "/projects/" ++ String.fromInt options.projectId ++ "/services/:serviceId/run"
+        { url = options.urlPrefix ++ "/projects/" ++ String.fromInt options.projectId ++ "/run"
         , body = Http.emptyBody
         , expect =
             Api.Data.expectJson options.onResponse

@@ -7,45 +7,26 @@ import (
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/operator"
 	"github.com/sahlinet/go-tumbo3/pkg/routers"
+	"github.com/sahlinet/go-tumbo3/pkg/runner"
 )
 
 type App struct {
 	Api        *echo.Echo
 	Repository models.Repository
+	Store      runner.ExecutableStore
 }
 
 func (a *App) Run() *echo.Echo {
 
-	//gin.SetMode(setting.ServerSetting.RunMode)
-
 	logger := logrus.New()
 	log := logger.WithField("process", "operator")
 
+	// Run the operator built-in
 	operator := operator.Operator{}
 	go operator.Run(log)
 
+	// Run the router
 	routersInit := routers.InitRouter()
 	return routersInit
-
-	// Start server
-
-	/*readTimeout := setting.ServerSetting.ReadTimeout
-	writeTimeout := setting.ServerSetting.WriteTimeout
-	endPoint := fmt.Sprintf(":%d", setting.ServerSetting.HttpPort)
-	maxHeaderBytes := 1 << 20
-
-	server := &http.Server{
-		Addr:           endPoint,
-		Handler:        routersInit,
-		ReadTimeout:    readTimeout,
-		WriteTimeout:   writeTimeout,
-		MaxHeaderBytes: maxHeaderBytes,
-	}
-
-	log.Printf("[info] start http server listening %s", endPoint)
-
-	server.ListenAndServe()
-
-	*/
 
 }

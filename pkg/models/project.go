@@ -10,15 +10,16 @@ import (
 type Project struct {
 	Model
 
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreatedBy   string `json:"created_by"`
-	ModifiedBy  string `json:"modified_by"`
-	State       string `json:"state"`
-	ErrorMsg    string `json:"errormsg"`
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	CreatedBy    string `json:"created_by"`
+	ModifiedBy   string `json:"modified_by"`
+	State        string `json:"state"`
+	ErrorMsg     string `json:"errormsg"`
+	BuildRetries uint   `json:"retry"`
 
 	GitRepository *GitRepository `json:"gitrepository"`
-	Services      []Service      `json:"services"`
+	Runner        *Runner        `json:"runner"`
 }
 
 type GitRepository struct {
@@ -71,7 +72,7 @@ func GetProjectTotal() (int64, error) {
 func GetProjects() ([]*Project, error) {
 	var projects []*Project
 	//err := db.Offset(pageNum).Limit(pageSize).Find(&projects).Error
-	err := db.Preload("GitRepository").Preload("Services").Find(&projects).Error
+	err := db.Preload("GitRepository").Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -82,7 +83,7 @@ func GetProjects() ([]*Project, error) {
 // GetProject Get a single project based on ID
 func GetProject(id uint) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Preload("Services").Where("id = ?", id).First(&project).Error
+	err := db.Preload("GitRepository").Where("id = ?", id).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func GetProject(id uint) (*Project, error) {
 
 func GetProjectByName(name string) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Preload("Services").Where("name = ?", name).First(&project).Error
+	err := db.Preload("GitRepository").Where("name = ?", name).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -134,13 +135,19 @@ func (project *Project) Update() error {
 	return nil
 }
 
+func (project *Project) UpdateStateInDB(state string) error {
+	project.State = state
+	return project.Update()
+
+}
+
 func (project *Project) CreateOrUpdate() error {
 	err := db.Model(&project).Association("GitRepository").Error
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = db.Model(&project).Association("Services").Error
+	err = db.Model(&project).Association("Runner").Error
 	if err != nil {
 		log.Fatal(err)
 	}

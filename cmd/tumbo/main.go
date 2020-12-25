@@ -62,6 +62,7 @@ func main() {
 	}
 
 	err = app1.Run().Start(":8000")
+
 	if err != nil {
 		log.Fatal(err)
 	}

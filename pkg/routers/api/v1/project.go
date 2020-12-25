@@ -14,7 +14,7 @@ import (
 )
 
 func GetProject(c echo.Context) error {
-	id := com.StrTo(c.Param("id")).MustInt()
+	id := com.StrTo(c.Param("projectId")).MustInt()
 	valid := validation.Validation{}
 	valid.Min(id, 1, "id")
 

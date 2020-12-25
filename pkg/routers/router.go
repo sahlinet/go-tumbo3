@@ -34,19 +34,20 @@ func InitRouter() *echo.Echo {
 	e.GET("/dist/elm.compiled.js", controllers.StaticFile)
 	e.GET("/version", controllers.Version)
 
+	publicv1 := e.Group("/public/v1")
+	publicv1.GET("/projects/:projectId", controllers.ServiceCaller)
+
 	apiv1 := e.Group("/api/v1")
 	apiv1.Use(middleware.JWT([]byte("secret")))
 	{
 
 		apiv1.GET("/projects", v1.Getprojects)
 		apiv1.GET("/projects/:projectId", v1.GetProject)
-		apiv1.GET("/projects/:projectId/services", controllers.GetServices)
-		apiv1.GET("/projects/:projectId/services/:serviceId", controllers.GetService)
 
-		apiv1.PUT("/projects/:projectId/services/:serviceId/run", controllers.ServiceStateHandler)
-		apiv1.DELETE("/projects/:projectId/services/:serviceId/run", controllers.ServiceStateHandler)
+		apiv1.PUT("/projects/:projectId/run", controllers.ProjectStateHandler)
+		apiv1.DELETE("/projects/:projectId/run", controllers.ProjectStateHandler)
 
-		apiv1.GET("/projects/:projectId/services/:serviceId/call", controllers.ServiceCaller)
+		apiv1.GET("/projects/:projectId/call", controllers.ServiceCaller)
 
 		//		apiv1.GET("/projects/:projectId/services", controllers.GetServices)
 		//apiv1.POST("/projects", v1.AddProject)

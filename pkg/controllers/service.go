@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 	"syscall"
 
 	"github.com/labstack/echo"
@@ -14,51 +13,8 @@ import (
 	"github.com/sahlinet/go-tumbo3/pkg/runner"
 )
 
-func GetServices(c echo.Context) error {
-	projectId := c.Param("projectId")
-
-	//var services []models.Service
-	services := make([]models.Service, 0)
-	projectIdInt, err := strconv.Atoi(projectId)
-	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	err = models.GetAllServicesForProject(&services, uint(projectIdInt))
-	if err != nil {
-		return c.NoContent(http.StatusNotFound)
-
-	}
-	return c.JSONPretty(http.StatusOK, services, " ")
-
-}
-
-func GetService(c echo.Context) error {
-	if strings.HasSuffix("c.Request.RequestURI", "services") {
-		return GetServices(c)
-	}
-
-	projectId := c.Param("projectId")
-	serviceId := strings.TrimLeft(c.Param("serviceId"), "/")
-
-	//var services []models.Service
-	service := models.Service{}
-	projectIdInt, err := strconv.Atoi(projectId)
-	serviceIdInt, err := strconv.Atoi(serviceId)
-	if err != nil {
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	err = models.GetService(&service, uint(projectIdInt), uint(serviceIdInt))
-	if err != nil {
-		return c.NoContent(http.StatusNotFound)
-	}
-
-	return c.JSONPretty(http.StatusOK, service, " ")
-
-}
-
-func ServiceStateHandler(c echo.Context) error {
+func ProjectStateHandler(c echo.Context) error {
 	projectID := c.Param("projectId")
-	serviceID := strings.TrimLeft(c.Param("serviceId"), "/")
 
 	var state string
 	switch state = c.Request().Method; state {
@@ -69,12 +25,12 @@ func ServiceStateHandler(c echo.Context) error {
 	}
 
 	if state == "" {
+		log.Error("state cannot be empty")
 		return c.NoContent(http.StatusInternalServerError)
 	}
 	projectIDInt, err := strconv.Atoi(projectID)
-	serviceIDInt, err := strconv.Atoi(serviceID)
 
-	err = ChangeServiceState(projectIDInt, serviceIDInt, state)
+	err = ProjectServiceState(projectIDInt, state)
 	if err != nil && err == ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 
@@ -87,10 +43,10 @@ func ServiceStateHandler(c echo.Context) error {
 
 var ErrNotFound = errors.New("not found")
 
-func ChangeServiceState(projectID, serviceID int, state string) error {
-	service, err, runnable, store, err2, done := GetSimpleRunnable(projectID, serviceID)
-	if done {
-		return err2
+func ProjectServiceState(projectID int, state string) error {
+	project, runnable, store, err := GetSimpleRunnable(projectID)
+	if err != nil {
+		return err
 	}
 
 	// Start
@@ -108,7 +64,13 @@ func ChangeServiceState(projectID, serviceID int, state string) error {
 			return err
 		}
 
-		buildOutput.OutputToStore(&store)
+		log.Info("project builded, ", buildOutput)
+
+		err = buildOutput.OutputToStore(store)
+		if err != nil {
+			log.Error(err)
+			return err
+		}
 
 		// Run
 		endpoint, err := runnable.Run(store)
@@ -122,11 +84,11 @@ func ChangeServiceState(projectID, serviceID int, state string) error {
 		runner := models.Runner{
 			Endpoint:  endpoint.Addr.String(),
 			Pid:       endpoint.Pid,
-			ServiceID: service.ID,
+			ProjectID: project.ID,
 		}
 		log.Debug(runner)
 
-		err = models.CreateRunner(&runner, service)
+		err = models.CreateRunner(&runner, *project)
 		if err != nil {
 			log.Error(err)
 			return err
@@ -137,7 +99,7 @@ func ChangeServiceState(projectID, serviceID int, state string) error {
 	// Stop
 	if state == "Stop" {
 		r := models.Runner{}
-		err = models.GetRunner(&r, service)
+		err = models.GetRunner(&r, *project)
 		if err != nil {
 			log.Error(err)
 			return err
@@ -160,9 +122,9 @@ func ChangeServiceState(projectID, serviceID int, state string) error {
 	return nil
 }
 
-func GetRunner(service models.Service) (*runner.SimpleRunnable, error) {
+func GetRunner(project models.Project) (*runner.SimpleRunnable, error) {
 	r := &models.Runner{}
-	err := models.GetRunner(r, service)
+	err := models.GetRunner(r, project)
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -177,34 +139,30 @@ func GetRunner(service models.Service) (*runner.SimpleRunnable, error) {
 	return &runnable, nil
 }
 
-func GetSimpleRunnable(projectID int, serviceID int) (models.Service, error, runner.SimpleRunnable, runner.ExecutableStoreFilesystem, error, bool) {
-	service := models.Service{}
-	err := models.GetService(&service, uint(projectID), uint(serviceID))
+func GetSimpleRunnable(projectID int) (*models.Project, runner.SimpleRunnable, runner.ExecutableStore, error) {
+	project, err := models.GetProject(uint(projectID))
 	if err != nil {
-		return models.Service{}, nil, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, err, true
+		return project, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, err
 	}
 
 	repo := models.GitRepository{}
 	err = models.GetRepositoryForProject(&repo, uint(projectID))
 	if err != nil {
-		return models.Service{}, nil, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, ErrNotFound, true
+		return project, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, ErrNotFound
 	}
 
 	// Get Runnable
-	runnable, err := runner.GetRunnableForProject(&service, &repo)
+	runnable, err := runner.GetRunnableForProject(project, &repo)
 	if err != nil {
-		return models.Service{}, nil, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, err, true
+		return project, runner.SimpleRunnable{}, runner.ExecutableStoreFilesystem{}, err
 	}
 
-	store := runner.ExecutableStoreFilesystem{
-		Root: "/tmp",
-	}
-	return service, err, runnable, store, nil, false
+	return project, runnable, runner.Store, err
 }
 
-func DeleteRunnerForService(service *models.Service) error {
+func DeleteRunnerForService(project *models.Project) error {
 	r := models.Runner{}
-	err := models.GetRunner(&r, *service)
+	err := models.GetRunner(&r, *project)
 	if err != nil {
 		return err
 	}

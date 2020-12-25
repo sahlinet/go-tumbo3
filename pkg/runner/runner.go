@@ -19,13 +19,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/matryer/try.v1"
 
+	"github.com/sahlinet/go-tumbo3/internal/util"
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/server"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/shared"
 	"github.com/sahlinet/go-tumbo3/pkg/source"
 )
 
-func GetRunnableForProject(s *models.Service, repo *models.GitRepository) (SimpleRunnable, error) {
+func GetRunnableForProject(s *models.Project, repo *models.GitRepository) (SimpleRunnable, error) {
 
 	runnable := SimpleRunnable{
 		Name:     s.Name,
@@ -64,14 +65,16 @@ func (o *BuildOutput) Clean() error {
 }
 
 // OutputToStore puts the file into the store
-func (o *BuildOutput) OutputToStore(store *ExecutableStoreFilesystem) error {
+func (o *BuildOutput) OutputToStore(store ExecutableStore) error {
 	defer o.Clean()
 	f, err := ioutil.ReadFile(o.Path)
 	if err != nil {
 		return err
 	}
 
-	err = store.Add(filepath.Base(o.Path), &f)
+	name := filepath.Base(o.Path)
+
+	err = store.Add(name, &f)
 	if err != nil {
 		return err
 	}
@@ -185,10 +188,20 @@ func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 
 	ac := make(chan *plugin.ReattachConfig)
 
-	path := store.GetPath(s.Name)
+	var err error
+	path := ""
+	if util.IsRunningInKubernetes() {
+		path, err = store.Load(s.FilePath())
+		if err != nil {
+			return RunnableEndpoint{}, err
+		}
+
+	} else {
+		path = store.GetPath(s.Name)
+	}
 	go s.RunPlugin(path, ac)
 
-	err := try.Do(func(attempt int) (bool, error) {
+	err = try.Do(func(attempt int) (bool, error) {
 		var err error
 		_, err = s.IsUp()
 		if err != nil {
@@ -197,7 +210,7 @@ func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 		return attempt < 10, err // try 5 times
 	})
 	if err != nil {
-		log.Fatalln("error:", err)
+		log.Println("error:", err)
 	}
 
 	reAttachConfig := <-ac
@@ -260,6 +273,11 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 	// We don't want to see the plugin logs.
 	log.SetOutput(ioutil.Discard)
 
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Errorf("path %s does not exists", path)
+		return
+	}
+
 	pluginExec := path
 
 	process := exec.Command(pluginExec)
@@ -281,15 +299,17 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 	rpcClient, err := client.Client()
 	r.Client = client
 	if err != nil {
-		fmt.Println("Error:", err.Error())
-		os.Exit(1)
+		log.Errorln("Error:", err.Error())
 	}
 
 	// Request the plugin
+	if rpcClient == nil {
+		log.Errorln("rpcClient is nil")
+
+	}
 	raw, err := rpcClient.Dispense("kv_grpc")
 	if err != nil {
-		fmt.Println("Error:", err.Error())
-		os.Exit(1)
+		log.Errorln("Error:", err.Error())
 	}
 
 	// We should have a KV store now! This feels like a normal interface
