@@ -5,7 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/sahlinet/go-tumbo3/internal/util"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
@@ -23,15 +24,18 @@ type ExecutableStoreFilesystem struct {
 var Store ExecutableStore
 
 func init() {
-	k8s := util.IsRunningInKubernetes()
-	if k8s {
+	Store = models.ExecutableStoreDb{}
+	/*
+		k8s := util.IsRunningInKubernetes()
+		if k8s {
 
-		Store = models.ExecutableStoreDb{}
-	} else {
-		Store = ExecutableStoreFilesystem{
-			Root: "/tmp",
+			Store = models.ExecutableStoreDb{}
+		} else {
+			Store = ExecutableStoreFilesystem{
+				Root: "/tmp",
+			}
 		}
-	}
+	*/
 }
 
 func (s ExecutableStoreFilesystem) Load(p string) (string, error) {
@@ -47,6 +51,7 @@ func (s ExecutableStoreFilesystem) Add(p string, b *[]byte) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("Executable stored in Filesystem at %s", s.GetPath(p))
 	return nil
 }
 

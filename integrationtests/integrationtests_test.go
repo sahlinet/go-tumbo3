@@ -9,6 +9,7 @@ import (
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/sahlinet/go-tumbo3/pkg/client"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -43,6 +44,17 @@ func TestKubernetesDeployment(t *testing.T) {
 
 	err = http_helper.HttpGetWithRetryWithCustomValidationE(t, url, nil, 20, 2*time.Second, func(statusCode int, body string) bool {
 		return strings.Contains(body, "Tumbo")
+	})
+
+	// Auth
+	token, err := client.Auth(url+"/auth", "user1", "password")
+	assert.Nil(t, err)
+
+	t.Run("get projects", func(t *testing.T) {
+		projects, err := client.GetProjects(url, token)
+		assert.Nil(t, err)
+
+		assert.Len(t, projects, 1)
 	})
 	assert.Nil(t, err)
 

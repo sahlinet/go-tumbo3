@@ -37,7 +37,8 @@ type alias Project =
 
 
 type alias GitRepository =
-    { url : String
+    { url : String,
+    version : String
     }
 
 
@@ -53,8 +54,9 @@ projectDecoder =
 
 gitRepositoryDecoder : Json.Decoder GitRepository
 gitRepositoryDecoder =
-    Json.map GitRepository
+    Json.map2 GitRepository
         (Json.field "url" Json.string)
+        (Json.field "version" Json.string)
 
 
 

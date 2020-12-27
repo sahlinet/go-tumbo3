@@ -3932,7 +3932,7 @@ var _Browser_element = _Debugger_element || F4(function(impl, flagDecoder, debug
 		impl.fZ,
 		impl.fN,
 		function(sendToApp, initialModel) {
-			var view = impl.f$;
+			var view = impl.f0;
 			/**/
 			var domNode = args['node'];
 			//*/
@@ -3969,7 +3969,7 @@ var _Browser_document = _Debugger_document || F4(function(impl, flagDecoder, deb
 		impl.fN,
 		function(sendToApp, initialModel) {
 			var divertHrefToApp = impl.cY && impl.cY(sendToApp)
-			var view = impl.f$;
+			var view = impl.f0;
 			var title = _VirtualDom_doc.title;
 			var bodyNode = _VirtualDom_doc.body;
 			var currNode = _VirtualDom_virtualize(bodyNode);
@@ -4073,7 +4073,7 @@ function _Browser_application(impl)
 		{
 			return A3(impl.fa, flags, _Browser_getUrl(), key);
 		},
-		f$: impl.f$,
+		f0: impl.f0,
 		fZ: impl.fZ,
 		fN: impl.fN
 	});
@@ -7059,7 +7059,7 @@ var $author$project$Pages$Login$view = function (model) {
 	};
 };
 var $author$project$Pages$Login$page = $author$project$Spa$Page$application(
-	{fa: $author$project$Pages$Login$init, ff: $author$project$Pages$Login$load, fI: $author$project$Pages$Login$save, fN: $author$project$Pages$Login$subscriptions, fZ: $author$project$Pages$Login$update, f$: $author$project$Pages$Login$view});
+	{fa: $author$project$Pages$Login$init, ff: $author$project$Pages$Login$load, fI: $author$project$Pages$Login$save, fN: $author$project$Pages$Login$subscriptions, fZ: $author$project$Pages$Login$update, f0: $author$project$Pages$Login$view});
 var $elm$core$Basics$always = F2(
 	function (a, _v0) {
 		return a;
@@ -7083,7 +7083,7 @@ var $author$project$Spa$Page$static = function (page) {
 			function (_v2, model) {
 				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 			}),
-		f$: page.f$
+		f0: page.f0
 	};
 };
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
@@ -7130,7 +7130,7 @@ var $author$project$Pages$NotFound$view = function (_v0) {
 	};
 };
 var $author$project$Pages$NotFound$page = $author$project$Spa$Page$static(
-	{f$: $author$project$Pages$NotFound$view});
+	{f0: $author$project$Pages$NotFound$view});
 var $author$project$Pages$Profile$Username_String$GotProfile = function (a) {
 	return {$: 0, a: a};
 };
@@ -7391,7 +7391,7 @@ var $author$project$Pages$Profile$Username_String$view = function (model) {
 	};
 };
 var $author$project$Pages$Profile$Username_String$page = $author$project$Spa$Page$application(
-	{fa: $author$project$Pages$Profile$Username_String$init, ff: $author$project$Pages$Profile$Username_String$load, fI: $author$project$Pages$Profile$Username_String$save, fN: $author$project$Pages$Profile$Username_String$subscriptions, fZ: $author$project$Pages$Profile$Username_String$update, f$: $author$project$Pages$Profile$Username_String$view});
+	{fa: $author$project$Pages$Profile$Username_String$init, ff: $author$project$Pages$Profile$Username_String$load, fI: $author$project$Pages$Profile$Username_String$save, fN: $author$project$Pages$Profile$Username_String$subscriptions, fZ: $author$project$Pages$Profile$Username_String$update, f0: $author$project$Pages$Profile$Username_String$view});
 var $author$project$Pages$Projects$GotProjects = function (a) {
 	return {$: 0, a: a};
 };
@@ -7399,13 +7399,15 @@ var $author$project$Api$Project$Project = F5(
 	function (name, description, state, errormsg, gitrepository) {
 		return {eS: description, eV: errormsg, e2: gitrepository, fi: name, fK: state};
 	});
-var $author$project$Api$Project$GitRepository = function (url) {
-	return {f_: url};
-};
-var $author$project$Api$Project$gitRepositoryDecoder = A2(
-	$elm$json$Json$Decode$map,
+var $author$project$Api$Project$GitRepository = F2(
+	function (url, version) {
+		return {f_: url, f$: version};
+	});
+var $author$project$Api$Project$gitRepositoryDecoder = A3(
+	$elm$json$Json$Decode$map2,
 	$author$project$Api$Project$GitRepository,
-	A2($elm$json$Json$Decode$field, 'url', $elm$json$Json$Decode$string));
+	A2($elm$json$Json$Decode$field, 'url', $elm$json$Json$Decode$string),
+	A2($elm$json$Json$Decode$field, 'version', $elm$json$Json$Decode$string));
 var $elm$json$Json$Decode$map5 = _Json_map5;
 var $author$project$Api$Project$projectDecoder = A6(
 	$elm$json$Json$Decode$map5,
@@ -7535,6 +7537,13 @@ var $author$project$Components$ProjectList$viewProject = function (listing) {
 						$elm$html$Html$text(listing.e2.f_)
 					])),
 				A2(
+				$elm$html$Html$p,
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(listing.e2.f$)
+					])),
+				A2(
 				$elm$html$Html$span,
 				_List_fromArray(
 					[
@@ -7612,7 +7621,7 @@ var $author$project$Pages$Projects$view = function (model) {
 	};
 };
 var $author$project$Pages$Projects$page = $author$project$Spa$Page$application(
-	{fa: $author$project$Pages$Projects$init, ff: $author$project$Pages$Projects$load, fI: $author$project$Pages$Projects$save, fN: $author$project$Pages$Projects$subscriptions, fZ: $author$project$Pages$Projects$update, f$: $author$project$Pages$Projects$view});
+	{fa: $author$project$Pages$Projects$init, ff: $author$project$Pages$Projects$load, fI: $author$project$Pages$Projects$save, fN: $author$project$Pages$Projects$subscriptions, fZ: $author$project$Pages$Projects$update, f0: $author$project$Pages$Projects$view});
 var $author$project$Pages$Register$Model = F5(
 	function (user, key, username, email, password) {
 		return {av: email, fc: key, cO: password, O: user, cg: username};
@@ -7805,7 +7814,7 @@ var $author$project$Pages$Register$view = function (model) {
 	};
 };
 var $author$project$Pages$Register$page = $author$project$Spa$Page$application(
-	{fa: $author$project$Pages$Register$init, ff: $author$project$Pages$Register$load, fI: $author$project$Pages$Register$save, fN: $author$project$Pages$Register$subscriptions, fZ: $author$project$Pages$Register$update, f$: $author$project$Pages$Register$view});
+	{fa: $author$project$Pages$Register$init, ff: $author$project$Pages$Register$load, fI: $author$project$Pages$Register$save, fN: $author$project$Pages$Register$subscriptions, fZ: $author$project$Pages$Register$update, f0: $author$project$Pages$Register$view});
 var $author$project$Pages$Settings$init = F2(
 	function (shared, _v0) {
 		return _Utils_Tuple2(
@@ -8189,7 +8198,7 @@ var $author$project$Pages$Settings$page = $author$project$Spa$Page$application(
 		fI: $author$project$Pages$Settings$save,
 		fN: $author$project$Pages$Settings$subscriptions,
 		fZ: $author$project$Pages$Settings$update,
-		f$: $author$project$Utils$Auth$protected($author$project$Pages$Settings$view)
+		f0: $author$project$Utils$Auth$protected($author$project$Pages$Settings$view)
 	});
 var $author$project$Pages$Top$FeedFor = function (a) {
 	return {$: 0, a: a};
@@ -8280,7 +8289,7 @@ var $author$project$Pages$Top$view = function (model) {
 	};
 };
 var $author$project$Pages$Top$page = $author$project$Spa$Page$application(
-	{fa: $author$project$Pages$Top$init, ff: $author$project$Pages$Top$load, fI: $author$project$Pages$Top$save, fN: $author$project$Pages$Top$subscriptions, fZ: $author$project$Pages$Top$update, f$: $author$project$Pages$Top$view});
+	{fa: $author$project$Pages$Top$init, ff: $author$project$Pages$Top$load, fI: $author$project$Pages$Top$save, fN: $author$project$Pages$Top$subscriptions, fZ: $author$project$Pages$Top$update, f0: $author$project$Pages$Top$view});
 var $elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -8428,10 +8437,10 @@ var $author$project$Spa$Generated$Pages$upgrade = F3(
 					$elm$core$Platform$Sub$map,
 					toMsg,
 					page.fN(model)),
-				f$: A2(
+				f0: A2(
 					$author$project$Spa$Document$map,
 					toMsg,
-					page.f$(model))
+					page.f0(model))
 			};
 		};
 		return {D: bundle_, fa: init_, fZ: update_};
@@ -9043,7 +9052,7 @@ var $author$project$Spa$Generated$Pages$view = A2(
 	$elm$core$Basics$composeR,
 	$author$project$Spa$Generated$Pages$bundle,
 	function ($) {
-		return $.f$;
+		return $.f0;
 	});
 var $author$project$Main$view = function (model) {
 	return A2(
@@ -9064,6 +9073,6 @@ var $author$project$Main$main = $elm$browser$Browser$application(
 		fx: $author$project$Main$LinkClicked,
 		fN: $author$project$Main$subscriptions,
 		fZ: $author$project$Main$update,
-		f$: A2($elm$core$Basics$composeR, $author$project$Main$view, $author$project$Spa$Document$toBrowserDocument)
+		f0: A2($elm$core$Basics$composeR, $author$project$Main$view, $author$project$Spa$Document$toBrowserDocument)
 	});
 _Platform_export({'Main':{'init':$author$project$Main$main($elm$json$Json$Decode$value)(0)}});}(this));

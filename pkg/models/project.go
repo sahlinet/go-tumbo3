@@ -25,7 +25,9 @@ type Project struct {
 type GitRepository struct {
 	Model
 
-	Url       string `gorm:"column:url" json:"url"`
+	Url     string `gorm:"column:url" json:"url"`
+	Version string `gorm:"column:version" json:"version"`
+
 	ProjectID uint
 }
 
@@ -127,8 +129,15 @@ func AddProject(data map[string]interface{}) error {
 
 // Update a single project
 func (project *Project) Update() error {
+	log.Info("Update project in database: ", project)
+	log.Info("Update project with GitRepository in database: ", project.GitRepository)
+	err := db.Model(&project).Association("GitRepository").Error
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if err := db.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Model(&Project{}).Where("id = ? AND deleted_on = ? ", project.ID, 0).Updates(project).Error; err != nil {
+	//if err := db.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Model(&Project{}).Where("id = ? AND deleted_on = ? ", project.ID, 0).Updates(project).Error; err != nil {
+	if err := db.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Updates(project).Error; err != nil {
 		return err
 	}
 
@@ -141,7 +150,7 @@ func (project *Project) UpdateStateInDB(state string) error {
 
 }
 
-func (project *Project) CreateOrUpdate() error {
+func (project *Project) CreateOrUpdate() (*Project, error) {
 	err := db.Model(&project).Association("GitRepository").Error
 	if err != nil {
 		log.Fatal(err)
@@ -158,17 +167,17 @@ func (project *Project) CreateOrUpdate() error {
 
 		err := p.Update()
 		if err != nil {
-			return err
+			return project, err
 		}
-		return nil
+		return project, nil
 	}
 
 	err = db.Create(&project).Error
 	if err != nil {
-		return err
+		return project, err
 	}
 
-	return nil
+	return project, nil
 
 }
 

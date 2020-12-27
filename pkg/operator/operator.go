@@ -35,9 +35,10 @@ func (o *Operator) Run(log *logrus.Entry) {
 			if err != nil {
 				log.Error()
 			}
-			//log.Infof("Name: %s State: %s", p.Name, p.State)
+			logProject := log.WithField("project", project.Name)
+			logProject.Infof("Name: %s State: %s", p.Name, p.State)
 
-			reconcile(log, p)
+			reconcile(logProject, p)
 		}
 
 	}
@@ -45,10 +46,14 @@ func (o *Operator) Run(log *logrus.Entry) {
 
 func reconcile(log *logrus.Entry, p *models.Project) {
 	log.Infof("Starting reconcile %s the state is %s", p.Name, p.State)
-	defer p.Update()
 
 	if p.State == Backoff {
 		log.Info("Ignore because the state is ", Backoff)
+		return
+	}
+
+	if p.State == Stopped {
+		log.Info("Ignore stopped")
 		return
 	}
 
@@ -65,8 +70,13 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 
 		p.ErrorMsg = ""
 
-		return
+		project, err := controllers.ProjectServiceState(int(p.ID), "Reload")
+		if p.GitRepository.Version != project.GitRepository.Version {
+			p.State = "Outdated"
+		}
+		p.Update()
 
+		return
 	}
 
 	if p.State != Running {
@@ -76,8 +86,9 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 			return
 		}
 		log.Info("Must start", p)
-		p.UpdateStateInDB(Building)
-		err := controllers.ProjectServiceState(int(p.ID), "Start")
+		//p.UpdateStateInDB(Building)
+		project, err := controllers.ProjectServiceState(int(p.ID), "Start")
+		log.Info("Project after state change: ", project)
 		if err != nil {
 			log.Error(err)
 			p.State = Errored
@@ -86,9 +97,7 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 			return
 		}
 
-		p.State = Running
-		p.ErrorMsg = ""
 	}
 
-	log.Info("Ending reconcile the state is", p.State)
+	log.Infof("Ending reconcile the state is %s", p.State)
 }

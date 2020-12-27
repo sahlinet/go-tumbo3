@@ -30,7 +30,7 @@ func ProjectStateHandler(c echo.Context) error {
 	}
 	projectIDInt, err := strconv.Atoi(projectID)
 
-	err = ProjectServiceState(projectIDInt, state)
+	project, err := ProjectServiceState(projectIDInt, state)
 	if err != nil && err == ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 
@@ -38,30 +38,43 @@ func ProjectStateHandler(c echo.Context) error {
 	if err != nil {
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	return nil
+
+	/*project, err := models.GetProject(uint(projectIDInt))
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+
+	*/
+
+	return c.JSONPretty(http.StatusOK, project, " ")
+
 }
 
 var ErrNotFound = errors.New("not found")
 
-func ProjectServiceState(projectID int, state string) error {
+func ProjectServiceState(projectID int, state string) (*models.Project, error) {
 	project, runnable, store, err := GetSimpleRunnable(projectID)
 	if err != nil {
-		return err
+		return project, err
+	}
+
+	if state == "Reload" || state == "Start" {
+		err := runnable.PrepareSource()
+		if err != nil {
+			log.Error(err)
+			return project, err
+		}
+		// Update with version
+		project.GitRepository.Version = runnable.Source.Version
 	}
 
 	// Start
 	if state == "Start" {
 
-		err := runnable.PrepareSource()
-		if err != nil {
-			log.Error(err)
-			return err
-		}
-
 		buildOutput, err := runnable.Build("/tmp/tumbo-builds")
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
 
 		log.Info("project builded, ", buildOutput)
@@ -69,7 +82,7 @@ func ProjectServiceState(projectID int, state string) error {
 		err = buildOutput.OutputToStore(store)
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
 
 		// Run
@@ -77,7 +90,7 @@ func ProjectServiceState(projectID int, state string) error {
 
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
 
 		// Store informations to reconnect later with reAttachConfig
@@ -91,8 +104,14 @@ func ProjectServiceState(projectID int, state string) error {
 		err = models.CreateRunner(&runner, *project)
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
+
+		project.GitRepository.Version = runnable.Source.Version
+		log.Info("Running version ", project.GitRepository.Version)
+		project.State = "Running"
+		project.ErrorMsg = ""
+		project.Update()
 
 	}
 
@@ -102,24 +121,27 @@ func ProjectServiceState(projectID int, state string) error {
 		err = models.GetRunner(&r, *project)
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
 
 		var runnable runner.SimpleRunnable
 		err = runnable.Attach(r.Endpoint, r.Pid)
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
 
 		err = runnable.Stop()
 		if err != nil {
 			log.Error(err)
-			return err
+			return project, err
 		}
+
+		project.State = "Stopped"
+		project.Update()
 	}
 
-	return nil
+	return project, nil
 }
 
 func GetRunner(project models.Project) (*runner.SimpleRunnable, error) {

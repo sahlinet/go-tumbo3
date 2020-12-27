@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/sahlinet/go-tumbo3/internal/app"
 	"github.com/sahlinet/go-tumbo3/internal/e"
 	"github.com/sahlinet/go-tumbo3/internal/service/project_service"
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
 func GetProject(c echo.Context) error {
@@ -59,4 +61,21 @@ func Getprojects(c echo.Context) error {
 	}
 
 	return c.JSONPretty(http.StatusOK, projects, " ")
+}
+
+func CreateProject(c echo.Context) error {
+	project := &models.Project{}
+	err := json.NewDecoder(c.Request().Body).Decode(&project)
+	if err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprint(err))
+	}
+
+	project, err = project.CreateOrUpdate()
+	if err != nil {
+		return c.String(http.StatusBadRequest, fmt.Sprint(err))
+	}
+
+	//return c.String(http.StatusOK, "")
+	return c.JSONPretty(http.StatusOK, project, " ")
+
 }

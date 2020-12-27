@@ -18,11 +18,10 @@ type App struct {
 
 func (a *App) Run() *echo.Echo {
 
-	logger := logrus.New()
-	log := logger.WithField("process", "operator")
-
 	// Run the operator built-in
 	operator := operator.Operator{}
+	logger := logrus.New()
+	log := logger.WithField("process", "operator")
 	go operator.Run(log)
 
 	// Run the router

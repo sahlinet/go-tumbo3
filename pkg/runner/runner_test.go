@@ -64,7 +64,7 @@ func TestBuildAndRunner(t *testing.T) {
 				err = buildOutput.OutputToStore(&store)
 				assert.Nil(t, err)
 
-				endpoint, err := r.Run(&store)
+				endpoint, err := r.Run(store)
 				if err != nil {
 					t.Error("no error expected", err)
 				}

@@ -50,7 +50,7 @@ func InitRouter() *echo.Echo {
 		apiv1.GET("/projects/:projectId/call", controllers.ServiceCaller)
 
 		//		apiv1.GET("/projects/:projectId/services", controllers.GetServices)
-		//apiv1.POST("/projects", v1.AddProject)
+		apiv1.POST("/projects", v1.CreateProject)
 
 		//apiv1.PUT("/projects/:id", v1.EditProject)
 		//apiv1.DELETE("/projects/:id", v1.DeleteProject)

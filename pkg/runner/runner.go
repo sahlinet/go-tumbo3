@@ -19,7 +19,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/matryer/try.v1"
 
-	"github.com/sahlinet/go-tumbo3/internal/util"
+	"golang.org/x/mod/sumdb/dirhash"
+
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/server"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/shared"
@@ -89,6 +90,7 @@ func (s *SimpleRunnable) FilePath() string {
 type Execute func() string
 
 func (s *SimpleRunnable) PrepareSource() error {
+
 	source := source.Source{
 		Remote: s.Location,
 	}
@@ -108,6 +110,11 @@ func (s *SimpleRunnable) PrepareSource() error {
 		source.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
 	} else {
 		source.CodePath = s.Location
+		version, err := dirhash.HashDir(s.Location, "aa", dirhash.Hash1)
+		if err != nil {
+			return err
+		}
+		source.Version = version
 	}
 	s.Source = source
 
@@ -128,6 +135,7 @@ func (s SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 	cmd := exec.Command("go", args...)
 	var err error
 	cmd.Dir, err = filepath.Abs(s.Source.CodePath)
+
 	if err != nil {
 		return output, err
 	}
@@ -190,15 +198,18 @@ func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 
 	var err error
 	path := ""
-	if util.IsRunningInKubernetes() {
+	switch v := store.(type) {
+	case ExecutableStoreFilesystem:
+		path = store.GetPath(s.Name)
+	case models.ExecutableStoreDb:
 		path, err = store.Load(s.FilePath())
 		if err != nil {
 			return RunnableEndpoint{}, err
 		}
-
-	} else {
-		path = store.GetPath(s.Name)
+	default:
+		log.Error(v, "is not recognized")
 	}
+
 	go s.RunPlugin(path, ac)
 
 	err = try.Do(func(attempt int) (bool, error) {

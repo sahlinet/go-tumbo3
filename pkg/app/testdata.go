@@ -42,19 +42,16 @@ func localTestProjects() []*models.Project {
 		},
 	})
 
-	examplePath = path.Join(d, "example-plugin-go-grpc-fail")
+	/*	examplePath = path.Join(d, "example-plugin-go-grpc-fail")
 
-	projects = append(projects, &models.Project{
-		/* 		Model: models.Model{
-			ID: 1,
-		}, */
-		Name:        "failing application",
-		Description: "an application that fails",
-		State:       "not started",
-		GitRepository: &models.GitRepository{
-			Url: examplePath,
-		},
-	})
+		projects = append(projects, &models.Project{
+			Name:        "failing application",
+			Description: "an application that fails",
+			State:       "not started",
+			GitRepository: &models.GitRepository{
+				Url: examplePath,
+			},
+		})*/
 	return projects
 }
 
@@ -116,7 +113,7 @@ func testData(db *gorm.DB) error {
 
 		log.Infof("load testdata: %s", project.Name)
 
-		err := project.CreateOrUpdate()
+		_, err := project.CreateOrUpdate()
 		if err != nil {
 			return err
 		}

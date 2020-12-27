@@ -7,6 +7,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ExecutableStoreDb struct {
@@ -14,9 +15,9 @@ type ExecutableStoreDb struct {
 
 type ExecutableStoreDbItem struct {
 	//ModelNonId
-	Model
+	//Model
 
-	Path       string `json:"path"`
+	Path       string `gorm:"primary_key" json:"path"`
 	Executable *[]byte
 	Size       uint
 }
@@ -48,18 +49,27 @@ func (s ExecutableStoreDb) Load(p string) (string, error) {
 		return "", err
 	}
 
+	os.Chmod(filename, 0700)
+
 	return filename, nil
 }
 
 // Add saves the executable to the database
-func (s ExecutableStoreDb) Add(p string, b *[]byte) (err error) {
+func (s ExecutableStoreDb) Add(p string, b *[]byte) error {
 	item := NewExecutableStoreDbItem(p)
+
 	item.Size = uint(len(*b))
 	item.Executable = b
-	log.Info("store executable with name ", item.Path)
-	if err = db.Create(&item).Error; err != nil {
+
+	log.Infof("store executable with name %s", item.Path)
+
+	if err := db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(&item).Error; err != nil {
 		return err
 	}
+
+	log.Infof("stored executable with name %s", item.Path)
 	return nil
 }
 

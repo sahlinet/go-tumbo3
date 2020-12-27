@@ -59,6 +59,7 @@ viewProject listing =
             [ text "Start" ]
         , p [] [ text listing.description ]
         , p [] [ text listing.gitrepository.url ]
+        , p [] [ text listing.gitrepository.version ]
         , span [ class "badge badge-pill badge-secondary" ]
             [ text listing.state ]
         , viewErrorDiv listing
