@@ -17,7 +17,7 @@ require (
 	github.com/go-ini/ini v1.62.0
 	github.com/go-openapi/spec v0.19.12 // indirect
 	github.com/golang/protobuf v1.4.3
-	github.com/gruntwork-io/terratest v0.31.2 // indirect
+	github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd
 	github.com/hashicorp/go-plugin v1.3.0
 	github.com/kylelemons/godebug v1.1.0
 	github.com/labstack/echo v3.3.10+incompatible
@@ -28,6 +28,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rodaine/table v1.0.1
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
+	github.com/siddontang/go v0.0.0-20170517070808-cb568a3e5cc0
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

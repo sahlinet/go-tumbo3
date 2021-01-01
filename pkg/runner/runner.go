@@ -37,6 +37,16 @@ func GetRunnableForProject(s *models.Project, repo *models.GitRepository) (Simpl
 	return runnable, nil
 }
 
+func init() {
+	log.SetReportCaller(true)
+	/* 	log.Formatter = &log.TextFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			filename := path.Base(f.File)
+			return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
+		},
+	} */
+}
+
 type Runnable interface {
 	Build(ExecutableStore) error
 	Run(ExecutableStore) error
@@ -56,6 +66,8 @@ type SimpleRunnable struct {
 type BuildOutput struct {
 	Path string
 }
+
+type Execute func() string
 
 func (o *BuildOutput) Clean() error {
 	err := os.Remove(o.Path)
@@ -86,8 +98,6 @@ func (o *BuildOutput) OutputToStore(store ExecutableStore) error {
 func (s *SimpleRunnable) FilePath() string {
 	return fmt.Sprintf("%s", s.Name)
 }
-
-type Execute func() string
 
 func (s *SimpleRunnable) PrepareSource() error {
 
@@ -181,7 +191,7 @@ type Response struct {
 
 func (s *SimpleRunnable) IsUp() (bool, error) {
 	if s.Client == nil {
-		return false, errors.New("down")
+		return false, errors.New("down (Client is nil)")
 	}
 	log.Println("Run IsUp")
 	return true, nil
@@ -192,6 +202,8 @@ type RunnableEndpoint struct {
 	Pid  int
 }
 
+// Run runs an executable from the ExectuableStore store. It loads the executable from the store and
+// starts the plugin in a go routine.
 func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 
 	ac := make(chan *plugin.ReattachConfig)
@@ -210,15 +222,17 @@ func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 		log.Error(v, "is not recognized")
 	}
 
+	log.Info("start plugin in goroutine...")
 	go s.RunPlugin(path, ac)
 
 	err = try.Do(func(attempt int) (bool, error) {
+		log.Info("Wait for the plugin is up and running")
 		var err error
 		_, err = s.IsUp()
 		if err != nil {
 			time.Sleep(1 * time.Second)
 		}
-		return attempt < 10, err // try 5 times
+		return attempt < 10, err // try 10 times
 	})
 	if err != nil {
 		log.Println("error:", err)
@@ -277,12 +291,19 @@ var handshakeConfig = plugin.HandshakeConfig{
 
 // pluginMap is the map of plugins we can dispense.
 var pluginMap = map[string]plugin.Plugin{
-	"greeter": &GreeterPlugin{},
+	"greeter": &shared.KVGRPCPlugin{},
 }
 
+// RunPlugin runs the plugin and returns over a channel the ReattachConfig
 func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) {
 	// We don't want to see the plugin logs.
-	log.SetOutput(ioutil.Discard)
+
+	//log.SetOutput(ioutil.Discard)
+	/* 	logger := hclog.New(&hclog.LoggerOptions{
+		Name:   "plugin",
+		Output: os.Stdout,
+		Level:  hclog.Debug,
+	}) */
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		log.Errorf("path %s does not exists", path)
@@ -291,8 +312,10 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 
 	pluginExec := path
 
+	log.Infof("create Command with path %s", path)
 	process := exec.Command(pluginExec)
 	process.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	//process.Stdout = os.Stdout
 	//process.SysProcAttr.Setsid = true
 	//syscall.Umask(0)
 	log.Info("running ", process)
@@ -303,20 +326,24 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 		Plugins:         shared.PluginMap,
 		Cmd:             process,
 		AllowedProtocols: []plugin.Protocol{
-			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
+			plugin.ProtocolGRPC},
+		//		Logger: logger,
 	})
 
-	// Connect via RPC
+	// Start and connect via RPC
 	rpcClient, err := client.Client()
 	r.Client = client
 	if err != nil {
-		log.Errorln("Error:", err.Error())
+		log.Errorln("error in client.Client():", err.Error())
+		//ac <- &plugin.ReattachConfig{}
+		//return
 	}
 
 	// Request the plugin
 	if rpcClient == nil {
 		log.Errorln("rpcClient is nil")
-
+		//ac <- &plugin.ReattachConfig{}
+		//return
 	}
 	raw, err := rpcClient.Dispense("kv_grpc")
 	if err != nil {
@@ -328,6 +355,7 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 	kv := raw.(shared.KV)
 	r.KV = kv
 
+	// Get ReattachConfig and send it back to outer goroutine to store for reattach to plugin later.
 	reAttachConfig := client.ReattachConfig()
 
 	ac <- reAttachConfig

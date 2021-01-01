@@ -59,6 +59,7 @@ func ProjectServiceState(projectID int, state string) (*models.Project, error) {
 	}
 
 	if state == "Reload" || state == "Start" {
+		// TODO: set checkout state
 		err := runnable.PrepareSource()
 		if err != nil {
 			log.Error(err)
