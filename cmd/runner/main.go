@@ -13,6 +13,8 @@ import (
 func main() {
 	pluginPath := flag.String("plugin", "", "path to the plugin")
 	build := flag.Bool("build", false, "build executable")
+	//download := flag.Bool("download", false, "download executable")
+	//downloadBaseURL := flag.Bool("")
 
 	flag.Parse()
 

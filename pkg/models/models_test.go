@@ -55,4 +55,7 @@ func TestModelProject(t *testing.T) {
 
 	err = CreateRunner(&runner, project)
 	assert.Nil(t, err)
+
+	// Lock project for other read
+
 }

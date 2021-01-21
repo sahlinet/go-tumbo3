@@ -33,6 +33,36 @@ func (o *Operator) Run(log *logrus.Entry) {
 		for _, project := range projects {
 			p, err := models.GetProject(project.ID)
 			if err != nil {
+				log.Error(err)
+			}
+			/*p, tx, err := models.GetProjectForShareOrUpdate(project.ID, "UPDATE")
+			if err != nil {
+				log.Error()
+				tx.Rollback()
+			}
+			tx.Commit()
+			*/
+			logProject := log.WithField("project", project.Name)
+			logProject.Infof("Name: %s State: %s", p.Name, p.State)
+
+			//reconcile(logProject, p, tx)
+			reconcile(logProject, p)
+		}
+
+	}
+}
+
+/*
+func (o *Operator) Run(log *logrus.Entry) {
+	for {
+		time.Sleep(5 * time.Second)
+		projects, err := models.GetProjects()
+		if err != nil {
+			log.Error(err)
+		}
+		for _, project := range projects {
+			p, err := models.GetProject(project.ID)
+			if err != nil {
 				log.Error()
 			}
 			logProject := log.WithField("project", project.Name)
@@ -43,10 +73,19 @@ func (o *Operator) Run(log *logrus.Entry) {
 
 	}
 }
+*/
 
+//func reconcile(log *logrus.Entry, p *models.Project, tx *gorm.DB) {
 func reconcile(log *logrus.Entry, p *models.Project) {
 	log.Infof("Starting reconcile %s the state is %s", p.Name, p.State)
 
+	// Get and Lock
+	p, tx, err := models.GetProjectForShareOrUpdate(p.ID, "SHARE")
+	if err != nil {
+		log.Error(err)
+	}
+	//time.Sleep(10 * time.Second)
+	defer tx.Commit()
 	if p.State == Backoff {
 		log.Info("Ignore because the state is ", Backoff)
 		return
@@ -58,6 +97,7 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 	}
 
 	if p.State == Running {
+		log.Info("State is running")
 		_, err := controllers.GetRunner(*p)
 		if err != nil {
 			runnerModel := &models.Runner{}
@@ -66,15 +106,17 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 			p.State = Errored
 			p.ErrorMsg = err.Error()
 			log.Error(err)
+			p.Update(tx)
+			return
 		}
 
 		p.ErrorMsg = ""
 
-		project, err := controllers.ProjectServiceState(int(p.ID), "Reload")
+		project, err := controllers.ProjectServiceState(int(p.ID), "Reload", tx)
 		if p.GitRepository.Version != project.GitRepository.Version {
 			p.State = "Outdated"
 		}
-		p.Update()
+		p.Update(tx)
 
 		return
 	}
@@ -82,20 +124,24 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 	if p.State != Running {
 		// TODO: reset Backoff when code is changed
 		if p.BuildRetries == Retries {
+			log.Info("Max retries reached")
 			p.State = Backoff
 			return
 		}
 		log.Info("Must start", p)
 		//p.UpdateStateInDB(Building)
-		project, err := controllers.ProjectServiceState(int(p.ID), "Start")
+		project, err := controllers.ProjectServiceState(int(p.ID), "Start", tx)
 		log.Info("Project after state change: ", project)
 		if err != nil {
 			log.Error(err)
 			p.State = Errored
 			p.ErrorMsg = err.Error()
 			p.BuildRetries = p.BuildRetries + 1
+
+			p.Update(tx)
 			return
 		}
+		project.Update(tx)
 
 	}
 

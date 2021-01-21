@@ -54,5 +54,5 @@ require (
 	gopkg.in/matryer/try.v1 v1.0.0-20150601225556-312d2599e12e
 	gorm.io/driver/postgres v1.0.3
 	gorm.io/driver/sqlite v1.1.3
-	gorm.io/gorm v1.20.9
+	gorm.io/gorm v1.20.11
 )

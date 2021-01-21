@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"syscall"
 
 	"github.com/labstack/echo"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/runner"
@@ -30,7 +30,7 @@ func ProjectStateHandler(c echo.Context) error {
 	}
 	projectIDInt, err := strconv.Atoi(projectID)
 
-	project, err := ProjectServiceState(projectIDInt, state)
+	project, err := ProjectServiceState(projectIDInt, state, nil)
 	if err != nil && err == ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 
@@ -52,7 +52,8 @@ func ProjectStateHandler(c echo.Context) error {
 
 var ErrNotFound = errors.New("not found")
 
-func ProjectServiceState(projectID int, state string) (*models.Project, error) {
+func ProjectServiceState(projectID int, state string, tx *gorm.DB) (*models.Project, error) {
+
 	project, runnable, store, err := GetSimpleRunnable(projectID)
 	if err != nil {
 		return project, err
@@ -112,7 +113,7 @@ func ProjectServiceState(projectID int, state string) (*models.Project, error) {
 		log.Info("Running version ", project.GitRepository.Version)
 		project.State = "Running"
 		project.ErrorMsg = ""
-		project.Update()
+		project.Update(tx)
 
 	}
 
@@ -139,7 +140,7 @@ func ProjectServiceState(projectID int, state string) (*models.Project, error) {
 		}
 
 		project.State = "Stopped"
-		project.Update()
+		project.Update(nil)
 	}
 
 	return project, nil
@@ -189,10 +190,10 @@ func DeleteRunnerForService(project *models.Project) error {
 	if err != nil {
 		return err
 	}
-	err = syscall.Kill(r.Pid, 9)
-	if err != nil {
-		log.Infof("not running anymore: %s", err)
-	}
+	/* 	err = syscall.Kill(r.Pid, 9)
+	   	if err != nil {
+	   		log.Infof("not running anymore: %s", err)
+	   	 }*/
 
 	m := models.DeleteRunner(r.ID)
 	return m
