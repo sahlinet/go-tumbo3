@@ -1,6 +1,8 @@
 package app
 
 import (
+	"flag"
+
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
 
@@ -20,10 +22,13 @@ func (a *App) Run() *echo.Echo {
 
 	// Run the operator built-in
 
-	operator := operator.Operator{}
-	logger := logrus.New()
-	log := logger.WithField("process", "operator")
-	go operator.Run(log)
+	if flag.Lookup("test.v") == nil {
+
+		operator := operator.Operator{}
+		logger := logrus.New()
+		log := logger.WithField("process", "operator")
+		go operator.Run(log)
+	}
 
 	//log = logger.WithField("process", "operator2")
 	//go operator.Run(log)
