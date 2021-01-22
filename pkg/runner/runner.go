@@ -175,6 +175,8 @@ func (s SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 		log.Print(err)
 	}
 
+	log.Infof("Build file %s finished", fn)
+
 	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 
 	if errStr != "" {

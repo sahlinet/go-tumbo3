@@ -116,7 +116,12 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 		if p.GitRepository.Version != project.GitRepository.Version {
 			p.State = "Outdated"
 		}
-		p.Update(tx)
+
+		err = p.Update(tx)
+		if err != nil {
+			log.Error(err)
+			return
+		}
 
 		return
 	}
@@ -141,6 +146,7 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 			p.Update(tx)
 			return
 		}
+		project.ErrorMsg = ""
 		project.Update(tx)
 
 	}

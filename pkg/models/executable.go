@@ -41,6 +41,7 @@ func (s ExecutableStoreDb) Load(p string) (string, error) {
 	filename := path.Join(d, p)
 
 	f, err := os.Create(filename)
+	defer f.Close()
 	if err != nil {
 		return "", err
 	}
