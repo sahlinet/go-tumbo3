@@ -27,8 +27,8 @@ func TestKubernetesDeployment(t *testing.T) {
 		k8s.CreateNamespace(t, options, namespaceName)
 	}
 
-	//defer k8s.DeleteNamespace(t, options, namespaceName)
-	//defer k8s.KubectlDelete(t, options, kubeResourcePath)
+	defer k8s.DeleteNamespace(t, options, namespaceName)
+	defer k8s.KubectlDelete(t, options, kubeResourcePath)
 	k8s.KubectlApply(t, options, kubeResourcePath)
 
 	serviceName := "tumbo-server-service"
