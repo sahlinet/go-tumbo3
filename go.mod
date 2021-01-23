@@ -21,6 +21,7 @@ require (
 	github.com/hashicorp/go-plugin v1.4.0
 	github.com/hashicorp/yamux v0.0.0-20200609203250-aecfd211c9ce // indirect
 	github.com/kylelemons/godebug v1.1.0
+<<<<<<< Updated upstream
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0
 	github.com/mailru/easyjson v0.7.6 // indirect
@@ -30,6 +31,14 @@ require (
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rodaine/table v1.0.1
+=======
+	github.com/labstack/echo v3.3.10+incompatible // indirect
+	github.com/labstack/gommon v0.3.0 // indirect
+	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/matryer/try v0.0.0-20161228173917-9ac251b645a2 // indirect
+	github.com/mattn/go-colorable v0.1.8 // indirect
+	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
+>>>>>>> Stashed changes
 	github.com/shiena/ansicolor v0.0.0-20200904210342-c7312218db18 // indirect
 	github.com/siddontang/go v0.0.0-20170517070808-cb568a3e5cc0
 	github.com/sirupsen/logrus v1.7.0
@@ -39,12 +48,19 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggo/swag v1.6.9
 	github.com/unknwon/com v1.0.1
+<<<<<<< Updated upstream
 	github.com/urfave/cli v1.22.2
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/mod v0.4.0
 	golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 	golang.org/x/sys v0.0.0-20201231184435-2d18734c6014 // indirect
+=======
+	github.com/valyala/fasttemplate v1.2.1 // indirect
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
+	golang.org/x/sys v0.0.0-20201101102859-da207088b7d1 // indirect
+>>>>>>> Stashed changes
 	golang.org/x/text v0.3.4 // indirect
 	golang.org/x/tools v0.0.0-20201030010431-2feb2bb1ff51 // indirect
 	google.golang.org/genproto v0.0.0-20201214200347-8c77b98c765d // indirect
