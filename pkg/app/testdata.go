@@ -21,40 +21,53 @@ func LoadTestData(db *gorm.DB) error {
 	return testData(db)
 }
 
-func localTestProject() *models.Project {
+func localTestProjects() []*models.Project {
 	d, err := lookupExamplesFolder()
 	if err != nil {
 		log.Error(err)
 	}
 	examplePath := path.Join(d, "example-plugin-go-grpc")
 
-	project := &models.Project{
+	projects := make([]*models.Project, 0)
+
+	projects = append(projects, &models.Project{
+		/* 		Model: models.Model{
+			ID: 0,
+		} ,*/
 		Name:        "the-project",
 		Description: "a project to test",
 		State:       "not started",
 		GitRepository: &models.GitRepository{
 			Url: examplePath,
 		},
-		Services: []models.Service{{
-			Name: "service-A",
-		}},
-	}
-	return project
+	})
+
+	examplePath = path.Join(d, "example-plugin-go-grpc-fail")
+
+	projects = append(projects, &models.Project{
+		Name:        "failing application",
+		Description: "an application that fails",
+		State:       "not started",
+		GitRepository: &models.GitRepository{
+			Url: examplePath,
+		},
+	})
+	return projects
 }
 
-func gitTestProject() *models.Project {
-	project := &models.Project{
-		Name:        "the-project",
+func gitTestProjects() []*models.Project {
+	projects := make([]*models.Project, 0)
+
+	projects = append(projects, &models.Project{
+		Name:        "the-git-project",
 		Description: "a project to test",
 		State:       "not started",
 		GitRepository: &models.GitRepository{
 			Url: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
 		},
-		Services: []models.Service{{
-			Name: "service-A",
-		}},
-	}
-	return project
+	})
+	return projects
+
 }
 
 func lookupExamplesFolder() (string, error) {
@@ -88,27 +101,24 @@ func lookupExamplesFolder() (string, error) {
 }
 
 func testData(db *gorm.DB) error {
-	var project *models.Project
+	var projects []*models.Project
 
 	if k8s := util.IsRunningInKubernetes(); k8s {
-		project = gitTestProject()
+		projects = gitTestProjects()
 	} else {
-		project = localTestProject()
+		projects = localTestProjects()
+		projects = append(projects, gitTestProjects()...)
 	}
 
-	err := db.Model(&project).Association("GitRepository").Error
-	if err != nil {
-		log.Fatal(err)
-	}
+	for _, project := range projects {
 
-	err = db.Model(&project).Association("Services").Error
-	if err != nil {
-		log.Fatal(err)
-	}
+		log.Infof("load testdata: %s", project.Name)
 
-	if err := db.FirstOrCreate(&project).Error; err != nil {
-		// return any error will rollback
-		return err
+		_, err := project.CreateOrUpdate()
+		if err != nil {
+			return err
+		}
+
 	}
 
 	return nil

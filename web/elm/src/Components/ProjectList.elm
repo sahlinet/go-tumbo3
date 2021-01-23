@@ -5,10 +5,9 @@ import Api.Project exposing (Project)
 import Api.User exposing (User)
 import Components.IconButton as IconButton
 import Html exposing (..)
-import Html.Attributes exposing (alt, attribute, class, classList, href, src, type_)
+import Html.Attributes exposing (alt, attribute, class, classList, href, src, target, type_)
 import Html.Events exposing (onClick)
-import Utils.Maybe
-import Utils.Time
+import String exposing (concat, fromInt)
 
 
 view :
@@ -51,13 +50,33 @@ viewProject :
 
 
 viewProject listing =
-    div [ class "highlight col-md-4" ]
+    div [ class "highlight col-md-10" ]
         [ h5 []
             [ text listing.name ]
-        , button [ class "btn btn-outline-secondary btn-xs pull-right", type_ "button" ]
-            --, button [ class "btn btn-outline-secondary btn-xs pull-right", type_ "button", onClick options.onStart ]
-            [ text "Start" ]
+
+        --, button [ class "btn btn-outline-secondary btn-xs pull-right", type_ "button" ]
+        --, button [ class "btn btn-outline-secondary btn-xs pull-right", type_ "button", onClick options.onStart ]
+        --   [ text "Start" ]
         , p [] [ text listing.description ]
+        , p [] [ a [ target "_blank", href (concat [ "/public/v1/projects/", fromInt listing.id ]) ] [ text "public" ] ]
+        , p [] [ text listing.gitrepository.url ]
+        , p [] [ text listing.gitrepository.version ]
         , span [ class "badge badge-pill badge-secondary" ]
             [ text listing.state ]
+        , viewErrorDiv listing
+
+        --        , div [ class "alert alert-warning" ]
+        --            [ text listing.errormsg
+        --            ]
         ]
+
+
+viewErrorDiv : Project -> Html msg
+viewErrorDiv listing =
+    if String.length listing.errormsg > 0 then
+        div [ class "alert alert-warning" ]
+            [ text listing.errormsg
+            ]
+
+    else
+        text ""

@@ -19,13 +19,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/matryer/try.v1"
 
+	"golang.org/x/mod/sumdb/dirhash"
+
 	"github.com/sahlinet/go-tumbo3/pkg/models"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/server"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/shared"
 	"github.com/sahlinet/go-tumbo3/pkg/source"
 )
 
-func GetRunnableForProject(s *models.Service, repo *models.GitRepository) (SimpleRunnable, error) {
+func GetRunnableForProject(s *models.Project, repo *models.GitRepository) (SimpleRunnable, error) {
 
 	runnable := SimpleRunnable{
 		Name:     s.Name,
@@ -33,6 +35,16 @@ func GetRunnableForProject(s *models.Service, repo *models.GitRepository) (Simpl
 	}
 
 	return runnable, nil
+}
+
+func init() {
+	log.SetReportCaller(true)
+	/* 	log.Formatter = &log.TextFormatter{
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			filename := path.Base(f.File)
+			return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
+		},
+	} */
 }
 
 type Runnable interface {
@@ -55,13 +67,27 @@ type BuildOutput struct {
 	Path string
 }
 
-func (o *BuildOutput) OutputToStore(store *ExecutableStoreFilesystem) error {
+type Execute func() string
+
+func (o *BuildOutput) Clean() error {
+	err := os.Remove(o.Path)
+	if err != nil {
+		log.Error(err)
+	}
+	return err
+}
+
+// OutputToStore puts the file into the store
+func (o *BuildOutput) OutputToStore(store ExecutableStore) error {
+	defer o.Clean()
 	f, err := ioutil.ReadFile(o.Path)
 	if err != nil {
 		return err
 	}
 
-	err = store.Add(filepath.Base(o.Path), &f)
+	name := filepath.Base(o.Path)
+
+	err = store.Add(name, &f)
 	if err != nil {
 		return err
 	}
@@ -73,38 +99,43 @@ func (s *SimpleRunnable) FilePath() string {
 	return fmt.Sprintf("%s", s.Name)
 }
 
-type Execute func() string
+func (s *SimpleRunnable) PrepareSource() error {
 
-func (r *SimpleRunnable) PrepareSource() error {
-	s := source.Source{
-		Remote: r.Location,
+	source := source.Source{
+		Remote: s.Location,
 	}
 
-	if strings.Contains(r.Location, ".git") {
+	if strings.Contains(s.Location, ".git") {
 		// Get dir
-		i := strings.LastIndex(r.Location, "//")
-		pathToSource := r.Location[i:]
+		i := strings.LastIndex(s.Location, "//")
+		pathToSource := s.Location[i:]
 
 		// Strip directory from clone url
-		s.Remote = r.Location[:i]
+		source.Remote = s.Location[:i]
 
-		p, err := s.Clone()
+		p, err := source.Clone()
 		if err != nil {
 			return err
 		}
-		s.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
+		source.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
 	} else {
-		s.CodePath = r.Location
+		source.CodePath = s.Location
+		version, err := dirhash.HashDir(s.Location, "aa", dirhash.Hash1)
+		if err != nil {
+			return err
+		}
+		source.Version = version
 	}
-	r.Source = s
+	s.Source = source
 
 	return nil
 }
 
-func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
+// Build executes a go build on the provided directory with a Go module.
+func (s SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 	// Define output
 	var output BuildOutput
-	fn := path.Join(buildOutputDir, r.FilePath())
+	fn := path.Join(buildOutputDir, s.FilePath())
 	output.Path = fn
 
 	cwd, _ := os.Getwd()
@@ -113,13 +144,12 @@ func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 	args := []string{"build", fmt.Sprintf("-o=%s", fn), "."}
 	cmd := exec.Command("go", args...)
 	var err error
-	cmd.Dir, err = filepath.Abs(r.Source.CodePath)
+	cmd.Dir, err = filepath.Abs(s.Source.CodePath)
+
 	if err != nil {
 		return output, err
 	}
-	//cmd.Dir = r.Location
 
-	//goPath := os.Getenv("GOPATH")
 	goPath := ""
 	if goPath == "" {
 		goPath = build.Default.GOPATH
@@ -145,7 +175,7 @@ func (r SimpleRunnable) Build(buildOutputDir string) (BuildOutput, error) {
 		log.Print(err)
 	}
 
-	//defer os.Remove(r.FilePath())
+	log.Infof("Build file %s finished", fn)
 
 	outStr, errStr := string(stdout.Bytes()), string(stderr.Bytes())
 
@@ -161,9 +191,9 @@ type Response struct {
 	String string
 }
 
-func (r *SimpleRunnable) IsUp() (bool, error) {
-	if r.Client == nil {
-		return false, errors.New("down")
+func (s *SimpleRunnable) IsUp() (bool, error) {
+	if s.Client == nil {
+		return false, errors.New("down (Client is nil)")
 	}
 	log.Println("Run IsUp")
 	return true, nil
@@ -174,23 +204,40 @@ type RunnableEndpoint struct {
 	Pid  int
 }
 
-func (r *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
+// Run runs an executable from the ExectuableStore store. It loads the executable from the store and
+// starts the plugin in a go routine.
+func (s *SimpleRunnable) Run(store ExecutableStore) (RunnableEndpoint, error) {
 
 	ac := make(chan *plugin.ReattachConfig)
 
-	path := store.GetPath(r.Name)
-	go r.RunPlugin(path, ac)
+	var err error
+	path := ""
+	switch v := store.(type) {
+	case ExecutableStoreFilesystem:
+		path = store.GetPath(s.Name)
+	case models.ExecutableStoreDb:
+		path, err = store.Load(s.FilePath())
+		if err != nil {
+			return RunnableEndpoint{}, err
+		}
+	default:
+		log.Error(v, "is not recognized")
+	}
 
-	err := try.Do(func(attempt int) (bool, error) {
+	log.Info("start plugin in goroutine...")
+	go s.RunPlugin(path, ac)
+
+	err = try.Do(func(attempt int) (bool, error) {
+		log.Info("Wait for the plugin is up and running")
 		var err error
-		_, err = r.IsUp()
+		_, err = s.IsUp()
 		if err != nil {
 			time.Sleep(1 * time.Second)
 		}
-		return attempt < 10, err // try 5 times
+		return attempt < 10, err // try 10 times
 	})
 	if err != nil {
-		log.Fatalln("error:", err)
+		log.Println("error:", err)
 	}
 
 	reAttachConfig := <-ac
@@ -246,17 +293,31 @@ var handshakeConfig = plugin.HandshakeConfig{
 
 // pluginMap is the map of plugins we can dispense.
 var pluginMap = map[string]plugin.Plugin{
-	"greeter": &GreeterPlugin{},
+	"greeter": &shared.KVGRPCPlugin{},
 }
 
+// RunPlugin runs the plugin and returns over a channel the ReattachConfig
 func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) {
 	// We don't want to see the plugin logs.
-	log.SetOutput(ioutil.Discard)
+
+	//log.SetOutput(ioutil.Discard)
+	/* 	logger := hclog.New(&hclog.LoggerOptions{
+		Name:   "plugin",
+		Output: os.Stdout,
+		Level:  hclog.Debug,
+	}) */
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		log.Errorf("path %s does not exists", path)
+		return
+	}
 
 	pluginExec := path
 
+	log.Infof("create Command with path %s", path)
 	process := exec.Command(pluginExec)
 	process.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	//process.Stdout = os.Stdout
 	//process.SysProcAttr.Setsid = true
 	//syscall.Umask(0)
 	log.Info("running ", process)
@@ -267,22 +328,28 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 		Plugins:         shared.PluginMap,
 		Cmd:             process,
 		AllowedProtocols: []plugin.Protocol{
-			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
+			plugin.ProtocolGRPC},
+		//		Logger: logger,
 	})
 
-	// Connect via RPC
+	// Start and connect via RPC
 	rpcClient, err := client.Client()
 	r.Client = client
 	if err != nil {
-		fmt.Println("Error:", err.Error())
-		os.Exit(1)
+		log.Errorln("error in client.Client():", err.Error())
+		//ac <- &plugin.ReattachConfig{}
+		//return
 	}
 
 	// Request the plugin
+	if rpcClient == nil {
+		log.Errorln("rpcClient is nil")
+		//ac <- &plugin.ReattachConfig{}
+		//return
+	}
 	raw, err := rpcClient.Dispense("kv_grpc")
 	if err != nil {
-		fmt.Println("Error:", err.Error())
-		os.Exit(1)
+		log.Errorln("Error:", err.Error())
 	}
 
 	// We should have a KV store now! This feels like a normal interface
@@ -290,6 +357,7 @@ func (r *SimpleRunnable) RunPlugin(path string, ac chan *plugin.ReattachConfig) 
 	kv := raw.(shared.KV)
 	r.KV = kv
 
+	// Get ReattachConfig and send it back to outer goroutine to store for reattach to plugin later.
 	reAttachConfig := client.ReattachConfig()
 
 	ac <- reAttachConfig

@@ -12,6 +12,7 @@ var flagtests = []struct {
 	name               string
 	runnable           SimpleRunnable
 	buildErrorExpected string
+	expectedResponse   string
 }{
 	{
 		name: "example",
@@ -19,25 +20,36 @@ var flagtests = []struct {
 			Name:     "example-plugin-go-grpc-out",
 			Location: "../../examples/example-plugin-go-grpc",
 		},
+		expectedResponse:   "Hello Hello",
 		buildErrorExpected: "",
 	},
-	{
-		name: "example-fail",
-		runnable: SimpleRunnable{
-			Name:     "example-plugin-go-grpc-fail-out",
-			Location: "../../examples/example-plugin-go-grpc-fail",
-		},
-		buildErrorExpected: `# github.com/sahlinet/go-tumbo3/examples/example-plugin-go-grpc-fail
-		./main.go:5:1: syntax error: non-declaration statement outside function body`,
-	},
-	{
+	/* 	{
+			name: "example-fail",
+			runnable: SimpleRunnable{
+				Name:     "example-plugin-go-grpc-fail-out",
+				Location: "../../examples/example-plugin-go-grpc-fail",
+			},
+			buildErrorExpected: `# github.com/sahlinet/go-tumbo3/examples/example-plugin-go-grpc-fail
+	./main.go:20:20: undefined: shared.Handshak`,
+			expectedResponse: "Hello Hello",
+		}, */
+	/* 	{
 		name: "example-git",
 		runnable: SimpleRunnable{
 			Name:     "example-plugin-go-grpc",
 			Location: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
 		},
 		buildErrorExpected: "",
-	},
+	}, */
+	/* 	{
+		name: "panicking",
+		runnable: SimpleRunnable{
+			Name:     "example-plugin-go-grpc-panicking",
+			Location: "../../examples/example-plugin-go-grpc-panicking",
+		},
+		expectedResponse:   "",
+		buildErrorExpected: "",
+	}, */
 }
 
 func TestBuildAndRunner(t *testing.T) {
@@ -59,12 +71,12 @@ func TestBuildAndRunner(t *testing.T) {
 				t.Errorf("expected build error wrong, diff:\n %s", diff.Diff(err.Error(), tt.buildErrorExpected))
 			}
 
-			err = buildOutput.OutputToStore(&store)
-			assert.Nil(t, err)
-
 			if tt.buildErrorExpected == "" {
 
-				endpoint, err := r.Run(&store)
+				err = buildOutput.OutputToStore(&store)
+				assert.Nil(t, err)
+
+				endpoint, err := r.Run(store)
 				if err != nil {
 					t.Error("no error expected", err)
 				}
@@ -73,11 +85,9 @@ func TestBuildAndRunner(t *testing.T) {
 					t.Error("Pid cannot be zero")
 				}
 
-				expectedResponse := "Hello Hello"
-
 				resp, err := r.Execute("Hello")
-				if resp != expectedResponse {
-					t.Errorf("not expected response '%s', was: '%s'", expectedResponse, resp)
+				if resp != tt.expectedResponse {
+					t.Errorf("not expected response '%s', was: '%s'", tt.expectedResponse, resp)
 				}
 
 				err = r.Stop()

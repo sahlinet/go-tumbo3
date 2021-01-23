@@ -18,8 +18,9 @@ func TestModelExecutable(t *testing.T) {
 
 	e := []byte("aa")
 	item := ExecutableStoreDbItem{
-		Path:       "aa",
-		Executable: e,
+
+		Path:       "aa-aa",
+		Executable: &e,
 	}
 	err := store.Add(item.Path, item.Executable)
 	assert.Nil(t, err)
@@ -27,6 +28,6 @@ func TestModelExecutable(t *testing.T) {
 	b, err := store.Load(item.Path)
 	assert.Nil(t, err)
 
-	assert.Equal(t, b, e)
+	assert.Regexp(t, "/tmp.*source.*", b)
 
 }

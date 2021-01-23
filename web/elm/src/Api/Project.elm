@@ -1,8 +1,8 @@
 module Api.Project exposing
-    ( decoder
-    , list
+    ( list
     ,  Project
        --updateArticle
+      , projectDecoder
 
     )
 
@@ -29,17 +29,36 @@ import Utils.Json exposing (withField)
 
 type alias Project =
     { name : String
+    , id : Int
     , description : String
     , state : String
+    , errormsg : String
+    , gitrepository : GitRepository
     }
 
 
-decoder : Json.Decoder Project
-decoder =
-    Json.map3 Project
+type alias GitRepository =
+    { url : String
+    , version : String
+    }
+
+
+projectDecoder : Json.Decoder Project
+projectDecoder =
+    Json.map6 Project
         (Json.field "name" Json.string)
+        (Json.field "id" Json.int)
         (Json.field "description" Json.string)
         (Json.field "state" Json.string)
+        (Json.field "errormsg" Json.string)
+        (Json.field "gitrepository" gitRepositoryDecoder)
+
+
+gitRepositoryDecoder : Json.Decoder GitRepository
+gitRepositoryDecoder =
+    Json.map2 GitRepository
+        (Json.field "url" Json.string)
+        (Json.field "version" Json.string)
 
 
 
@@ -57,7 +76,7 @@ list options =
         { url = options.urlPrefix ++ "/api/v1/projects"
         , expect =
             Api.Data.expectJson options.onResponse
-                (Json.list decoder)
+                (Json.list projectDecoder)
         }
 
 
@@ -70,9 +89,9 @@ start :
     -> Cmd msg
 start options =
     Api.Token.put options.token
-        { url = options.urlPrefix ++ "/projects/" ++ String.fromInt options.projectId ++ "/services/:serviceId/run"
+        { url = options.urlPrefix ++ "/projects/" ++ String.fromInt options.projectId ++ "/run"
         , body = Http.emptyBody
         , expect =
             Api.Data.expectJson options.onResponse
-                (Json.list decoder)
+                (Json.list projectDecoder)
         }

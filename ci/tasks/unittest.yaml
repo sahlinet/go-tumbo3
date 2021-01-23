@@ -10,7 +10,7 @@ image_resource:
   type: registry-image
   source:
     repository: golang
-    tag: 1.14-stretch
+    tag: 1.15-buster
 
 run:
   path: /bin/sh
@@ -19,7 +19,10 @@ run:
     - |
       set -e
       cd go-tumbo-git
-      # vet only pkg becaues the failing examples makes it fail
-      go vet ./...
+      # vet only pkg because the failing examples makes it fail
+
+      go vet ./pkg/...
+
       go test -v ./...
+
       echo $?

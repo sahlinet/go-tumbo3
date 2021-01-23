@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	log "github.com/sirupsen/logrus"
+
+	"github.com/sahlinet/go-tumbo3/pkg/models"
 )
 
 type ExecutableStore interface {
-	Load(string) (*[]byte, error)
+	Load(string) (string, error)
 	Add(string, *[]byte) error
 	Exists(string) (bool, error)
 	GetPath(string) string
@@ -17,12 +21,29 @@ type ExecutableStoreFilesystem struct {
 	Root string
 }
 
-func (s ExecutableStoreFilesystem) Load(p string) (*[]byte, error) {
-	f, err := ioutil.ReadFile(s.GetPath(p))
+var Store ExecutableStore
+
+func init() {
+	Store = models.ExecutableStoreDb{}
+	/*
+		k8s := util.IsRunningInKubernetes()
+		if k8s {
+
+			Store = models.ExecutableStoreDb{}
+		} else {
+			Store = ExecutableStoreFilesystem{
+				Root: "/tmp",
+			}
+		}
+	*/
+}
+
+func (s ExecutableStoreFilesystem) Load(p string) (string, error) {
+	_, err := ioutil.ReadFile(s.GetPath(p))
 	if err != nil {
-		return &[]byte{}, err
+		return "", err
 	}
-	return &f, nil
+	return s.GetPath(p), nil
 }
 
 func (s ExecutableStoreFilesystem) Add(p string, b *[]byte) error {
@@ -30,6 +51,7 @@ func (s ExecutableStoreFilesystem) Add(p string, b *[]byte) error {
 	if err != nil {
 		return err
 	}
+	log.Infof("Executable stored in Filesystem at %s", s.GetPath(p))
 	return nil
 }
 

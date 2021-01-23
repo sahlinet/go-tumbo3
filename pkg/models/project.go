@@ -2,28 +2,34 @@ package models
 
 import (
 	"strings"
+	"time"
 
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type Project struct {
 	Model
 
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	CreatedBy   string `json:"created_by"`
-	ModifiedBy  string `json:"modified_by"`
-	State       string `json:"state"`
-	ErrorMsg    string `json:"errormsg"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description"`
+	CreatedBy       string    `json:"created_by"`
+	ModifiedBy      string    `json:"modified_by"`
+	State           string    `json:"state"`
+	BackOffDatetime time.Time `json:"backoff_datetime"`
+	ErrorMsg        string    `json:"errormsg"`
+	BuildRetries    uint      `json:"retry"`
 
-	GitRepository *GitRepository
-	Services      []Service
+	GitRepository *GitRepository `json:"gitrepository"`
+	Runner        *Runner        `json:"runner"`
 }
 
 type GitRepository struct {
 	Model
 
-	Url       string `gorm:"column:url"`
+	Url     string `gorm:"column:url" json:"url"`
+	Version string `gorm:"column:version" json:"version"`
+
 	ProjectID uint
 }
 
@@ -70,7 +76,7 @@ func GetProjectTotal() (int64, error) {
 func GetProjects() ([]*Project, error) {
 	var projects []*Project
 	//err := db.Offset(pageNum).Limit(pageSize).Find(&projects).Error
-	err := db.Find(&projects).Error
+	err := db.Preload("GitRepository").Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -81,12 +87,37 @@ func GetProjects() ([]*Project, error) {
 // GetProject Get a single project based on ID
 func GetProject(id uint) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Preload("Services").Where("id = ?", id).First(&project).Error
+	err := db.Preload("GitRepository").Where("id = ?", id).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
 
-	//	err = db.Model(&article).Related(&article.Tag).Error
+	return &project, nil
+}
+
+// GetProject Get a single project based on ID
+func GetProjectForShareOrUpdate(id uint, strength string) (*Project, *gorm.DB, error) {
+	var project Project
+	tx := db.Begin()
+	//tx.Set("gorm:query_option", "NOWAIT")
+	//err := tx.Debug().Clauses(clause.Locking{Strength: strength}, NoWait{}).Preload("GitRepository").Where("id = ?", id).First(&project).Error
+	//err := tx.Debug().Clauses(clause.Locking{Strength: strength, Options: "NOWAIT"}).Preload("GitRepository").Where("id = ?", id).First(&project).Error
+	err := tx.Debug().Preload("GitRepository").Where("id = ?", id).First(&project).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, nil, err
+	}
+
+	if err != nil {
+		log.Error(err)
+		return nil, nil, err
+	}
+
+	return &project, tx, nil
+}
+
+func GetProjectByName(name string) (*Project, error) {
+	var project Project
+	err := db.Preload("GitRepository").Where("name = ?", name).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -119,13 +150,61 @@ func AddProject(data map[string]interface{}) error {
 }
 
 // Update a single project
-func (project *Project) Update() error {
+func (project *Project) Update(tx *gorm.DB) error {
+	if tx == nil {
+		tx = db
+	}
+	log.Info("Update project in database: ", project)
+	log.Info("Update project with GitRepository in database: ", project.GitRepository)
+	err := tx.Model(&project).Association("GitRepository").Error
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if err := db.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Model(&Project{}).Where("id = ? AND deleted_on = ? ", project.ID, 0).Updates(project).Error; err != nil {
+	tx.Save(project)
+	if err := tx.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Updates(project).Error; err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (project *Project) UpdateStateInDB(state string, tx *gorm.DB) error {
+	project.State = state
+	project.ErrorMsg = ""
+	return project.Update(tx)
+
+}
+
+func (project *Project) CreateOrUpdate() (*Project, error) {
+	err := db.Model(&project).Association("GitRepository").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Model(&project).Association("Runner").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	p, err := GetProjectByName(project.Name)
+	log.Info(p, err)
+	if p.Name != "" {
+
+		err := p.Update(nil)
+		if err != nil {
+			return project, err
+		}
+		return project, nil
+	}
+
+	err = db.Create(&project).Error
+	if err != nil {
+		return project, err
+	}
+
+	return project, nil
+
 }
 
 // Deleteproject delete a single article

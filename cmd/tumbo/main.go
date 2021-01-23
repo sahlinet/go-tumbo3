@@ -56,9 +56,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	app.LoadTestData(db)
+	err = app.LoadTestData(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = app1.Run().Start(":8000")
+
 	if err != nil {
 		log.Fatal(err)
 	}

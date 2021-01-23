@@ -13,15 +13,19 @@ type Operator struct {
 }
 
 const (
+	Building = "Building"
 	Running  = "Running"
 	Stopped  = "Stopped"
 	Errored  = "Errored"
 	Starting = "Starting"
+	Backoff  = "Backoff"
+
+	Retries = 5
 )
 
 func (o *Operator) Run(log *logrus.Entry) {
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 		projects, err := models.GetProjects()
 		if err != nil {
 			log.Error(err)
@@ -29,11 +33,13 @@ func (o *Operator) Run(log *logrus.Entry) {
 		for _, project := range projects {
 			p, err := models.GetProject(project.ID)
 			if err != nil {
-				log.Error()
+				log.Error(err)
 			}
-			//log.Infof("Name: %s State: %s", p.Name, p.State)
 
-			reconcile(log, p)
+			logProject := log.WithField("project", project.Name)
+			logProject.Infof("Name: %s State: %s", p.Name, p.State)
+
+			reconcile(logProject, p)
 		}
 
 	}
@@ -41,42 +47,86 @@ func (o *Operator) Run(log *logrus.Entry) {
 
 func reconcile(log *logrus.Entry, p *models.Project) {
 	log.Infof("Starting reconcile %s the state is %s", p.Name, p.State)
-	defer p.Update()
 
-	if p.State == "Running" {
-		_, err := controllers.GetRunner(p.Services[0])
-		if err != nil {
-			runnerModel := &models.Runner{}
-			models.GetRunner(runnerModel, p.Services[0])
-			controllers.DeleteRunnerForService(&p.Services[0])
-			p.State = "Errored"
-			p.ErrorMsg = err.Error()
-			log.Error(err)
-		}
-		//log.Debug(r)
-		p.ErrorMsg = ""
-		/*err = r.Close()
-		if err != nil {
-			log.Error(err)
-		}
-		*/
+	// Get and Lock
+	p, tx, err := models.GetProjectForShareOrUpdate(p.ID, "SHARE")
+	if err != nil {
+		log.Error(err)
+	}
+	defer tx.Commit()
+	if p.State == Backoff {
+		log.Info("Ignore because the state is ", Backoff)
 		return
-
 	}
 
-	if p.State != "Running" {
-		log.Info("Must start", p)
-		err := controllers.ChangeServiceState(int(p.ID), int(p.Services[0].ID), "Start")
+	if p.State == Stopped {
+		log.Info("Ignore stopped")
+		return
+	}
+
+	if p.State == Running {
+		log.Info("State is running")
+		_, err := controllers.GetRunner(*p)
 		if err != nil {
-			log.Error(err)
-			p.State = "Errored"
+			runnerModel := &models.Runner{}
+			models.GetRunner(runnerModel, *p)
+			controllers.DeleteRunnerForService(p)
+			p.State = Errored
 			p.ErrorMsg = err.Error()
+			log.Error(err)
+			p.Update(tx)
 			return
 		}
 
-		p.State = "Running"
 		p.ErrorMsg = ""
+
+		project, err := controllers.ProjectServiceState(int(p.ID), "Reload", tx)
+		if p.GitRepository.Version != project.GitRepository.Version {
+			p.State = "Outdated"
+		}
+
+		err = p.Update(tx)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		return
 	}
 
-	log.Info("Ending reconcile the state is", p.State)
+	if p.State != Running {
+		if p.BuildRetries == Retries {
+			log.Info("Max retries reached")
+			p.State = Backoff
+
+			// Check if code changed
+			project, err := controllers.ProjectServiceState(int(p.ID), "Check", tx)
+			if err != nil {
+				log.Error(err)
+			}
+			if p.GitRepository.Version != project.GitRepository.Version {
+				return
+			}
+			p.BuildRetries = 0
+			p.ErrorMsg = ""
+		}
+		log.Info("Must start", p)
+		//p.UpdateStateInDB(Building)
+		project, err := controllers.ProjectServiceState(int(p.ID), "Start", tx)
+		log.Info("Project after state change: ", project)
+		if err != nil {
+			log.Error(err)
+			p.State = Errored
+			p.ErrorMsg = err.Error()
+			p.BuildRetries = p.BuildRetries + 1
+
+			p.Update(tx)
+			return
+		}
+		project.ErrorMsg = ""
+		project.Update(tx)
+
+	}
+
+	log.Infof("Ending reconcile the state is %s", p.State)
 }

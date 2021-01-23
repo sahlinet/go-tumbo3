@@ -11,6 +11,7 @@ type Source struct {
 	Remote           string
 	CodePath         string
 	TempBinaryOutput string
+	Version          string
 }
 
 func (s *Source) Clone() (string, error) {
