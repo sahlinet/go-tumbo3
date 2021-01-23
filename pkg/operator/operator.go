@@ -25,7 +25,7 @@ const (
 
 func (o *Operator) Run(log *logrus.Entry) {
 	for {
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 		projects, err := models.GetProjects()
 		if err != nil {
 			log.Error(err)
@@ -35,36 +35,7 @@ func (o *Operator) Run(log *logrus.Entry) {
 			if err != nil {
 				log.Error(err)
 			}
-			/*p, tx, err := models.GetProjectForShareOrUpdate(project.ID, "UPDATE")
-			if err != nil {
-				log.Error()
-				tx.Rollback()
-			}
-			tx.Commit()
-			*/
-			logProject := log.WithField("project", project.Name)
-			logProject.Infof("Name: %s State: %s", p.Name, p.State)
 
-			//reconcile(logProject, p, tx)
-			reconcile(logProject, p)
-		}
-
-	}
-}
-
-/*
-func (o *Operator) Run(log *logrus.Entry) {
-	for {
-		time.Sleep(5 * time.Second)
-		projects, err := models.GetProjects()
-		if err != nil {
-			log.Error(err)
-		}
-		for _, project := range projects {
-			p, err := models.GetProject(project.ID)
-			if err != nil {
-				log.Error()
-			}
 			logProject := log.WithField("project", project.Name)
 			logProject.Infof("Name: %s State: %s", p.Name, p.State)
 
@@ -73,9 +44,7 @@ func (o *Operator) Run(log *logrus.Entry) {
 
 	}
 }
-*/
 
-//func reconcile(log *logrus.Entry, p *models.Project, tx *gorm.DB) {
 func reconcile(log *logrus.Entry, p *models.Project) {
 	log.Infof("Starting reconcile %s the state is %s", p.Name, p.State)
 
@@ -84,7 +53,6 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 	if err != nil {
 		log.Error(err)
 	}
-	//time.Sleep(10 * time.Second)
 	defer tx.Commit()
 	if p.State == Backoff {
 		log.Info("Ignore because the state is ", Backoff)
@@ -127,11 +95,20 @@ func reconcile(log *logrus.Entry, p *models.Project) {
 	}
 
 	if p.State != Running {
-		// TODO: reset Backoff when code is changed
 		if p.BuildRetries == Retries {
 			log.Info("Max retries reached")
 			p.State = Backoff
-			return
+
+			// Check if code changed
+			project, err := controllers.ProjectServiceState(int(p.ID), "Check", tx)
+			if err != nil {
+				log.Error(err)
+			}
+			if p.GitRepository.Version != project.GitRepository.Version {
+				return
+			}
+			p.BuildRetries = 0
+			p.ErrorMsg = ""
 		}
 		log.Info("Must start", p)
 		//p.UpdateStateInDB(Building)

@@ -2,6 +2,7 @@ package models
 
 import (
 	"strings"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -10,13 +11,14 @@ import (
 type Project struct {
 	Model
 
-	Name         string `json:"name"`
-	Description  string `json:"description"`
-	CreatedBy    string `json:"created_by"`
-	ModifiedBy   string `json:"modified_by"`
-	State        string `json:"state"`
-	ErrorMsg     string `json:"errormsg"`
-	BuildRetries uint   `json:"retry"`
+	Name            string    `json:"name"`
+	Description     string    `json:"description"`
+	CreatedBy       string    `json:"created_by"`
+	ModifiedBy      string    `json:"modified_by"`
+	State           string    `json:"state"`
+	BackOffDatetime time.Time `json:"backoff_datetime"`
+	ErrorMsg        string    `json:"errormsg"`
+	BuildRetries    uint      `json:"retry"`
 
 	GitRepository *GitRepository `json:"gitrepository"`
 	Runner        *Runner        `json:"runner"`
@@ -159,7 +161,7 @@ func (project *Project) Update(tx *gorm.DB) error {
 		log.Fatal(err)
 	}
 
-	//if err := db.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Model(&Project{}).Where("id = ? AND deleted_on = ? ", project.ID, 0).Updates(project).Error; err != nil {
+	tx.Save(project)
 	if err := tx.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Updates(project).Error; err != nil {
 		return err
 	}
@@ -169,6 +171,7 @@ func (project *Project) Update(tx *gorm.DB) error {
 
 func (project *Project) UpdateStateInDB(state string, tx *gorm.DB) error {
 	project.State = state
+	project.ErrorMsg = ""
 	return project.Update(tx)
 
 }

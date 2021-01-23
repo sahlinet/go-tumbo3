@@ -59,7 +59,7 @@ func ProjectServiceState(projectID int, state string, tx *gorm.DB) (*models.Proj
 		return project, err
 	}
 
-	if state == "Reload" || state == "Start" {
+	if state == "Reload" || state == "Start" || state == "Check" {
 		// TODO: set checkout state
 		err := runnable.PrepareSource()
 		if err != nil {

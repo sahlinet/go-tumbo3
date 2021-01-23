@@ -29,6 +29,7 @@ import Utils.Json exposing (withField)
 
 type alias Project =
     { name : String
+    , id : Int
     , description : String
     , state : String
     , errormsg : String
@@ -37,15 +38,16 @@ type alias Project =
 
 
 type alias GitRepository =
-    { url : String,
-    version : String
+    { url : String
+    , version : String
     }
 
 
 projectDecoder : Json.Decoder Project
 projectDecoder =
-    Json.map5 Project
+    Json.map6 Project
         (Json.field "name" Json.string)
+        (Json.field "id" Json.int)
         (Json.field "description" Json.string)
         (Json.field "state" Json.string)
         (Json.field "errormsg" Json.string)
