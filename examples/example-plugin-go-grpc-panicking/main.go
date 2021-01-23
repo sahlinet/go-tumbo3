@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/hashicorp/go-plugin"
 	"github.com/sahlinet/go-tumbo3/pkg/runner/shared"
 )
@@ -13,7 +11,6 @@ type KV struct{}
 
 func (KV) Execute(key string) ([]byte, error) {
 	panic("I panicked")
-	return []byte(fmt.Sprintf("Hello %s", key)), nil
 }
 
 func main() {
