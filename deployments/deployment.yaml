@@ -8,50 +8,56 @@ spec:
   selector:
     matchLabels:
       app: tumbo-server
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       annotations:
-        version: develop
+        version: "develop"
       labels:
         app: tumbo-server
     spec:
       containers:
-      - name: tumbo-server
-        image: philipsahli/go-tumbo:latest
-        ports:
-        - containerPort: 8000
-        volumeMounts:
-          - name: tumbo-config-volume
-            mountPath: /etc/tumbo
-        env:
-          - name: DB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: tumbo-db
-                key: DB_HOST
-          - name: DB_PORT
-            valueFrom:
-              secretKeyRef:
-                name: tumbo-db
-                key: DB_PORT
-          - name: DB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: tumbo-db
-                key: DB_USERNAME
-          - name: DB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: tumbo-db
-                key: DB_PASSWORD
-          - name: DB_NAME
-            valueFrom:
-              secretKeyRef:
-                name: tumbo-db
-                key: DB_NAME
+        - name: tumbo-server
+          image: philipsahli/go-tumbo:latest
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: tumbo-config-volume
+              mountPath: /etc/tumbo
+          env:
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: tumbo-db
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: tumbo-db
+                  key: DB_PORT
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: tumbo-db
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: tumbo-db
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: tumbo-db
+                  key: DB_NAME
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
       volumes:
-      - name: tumbo-config-volume
-        configMap:
-          name: tumbo-config
-
+        - name: tumbo-config-volume
+          configMap:
+            name: tumbo-config
