@@ -23,7 +23,6 @@ func (a *App) Run() *echo.Echo {
 	// Run the operator built-in
 
 	if flag.Lookup("test.v") == nil {
-
 		operator := operator.Operator{}
 		logger := logrus.New()
 		log := logger.WithField("process", "operator")

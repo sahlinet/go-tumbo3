@@ -33,14 +33,17 @@ var flagtests = []struct {
 	./main.go:20:20: undefined: shared.Handshak`,
 			expectedResponse: "Hello Hello",
 		}, */
-	/* 	{
+
+	{
 		name: "example-git",
 		runnable: SimpleRunnable{
 			Name:     "example-plugin-go-grpc",
-			Location: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
+			Location: "https://github.com/sahlinet/go-tumbo3-examples.git//example-plugin-go-grpc",
 		},
+		expectedResponse:   "Hello Hello",
 		buildErrorExpected: "",
-	}, */
+	},
+
 	/* 	{
 		name: "panicking",
 		runnable: SimpleRunnable{
@@ -65,6 +68,8 @@ func TestBuildAndRunner(t *testing.T) {
 
 			err := r.PrepareSource()
 			assert.Nil(t, err)
+
+			assert.NotEmpty(t, r.Source.Version)
 
 			buildOutput, err := r.Build("/tmp/tumbo-builds")
 			if err != nil && err.Error() != tt.buildErrorExpected {

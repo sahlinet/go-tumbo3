@@ -115,8 +115,10 @@ func (s *SimpleRunnable) PrepareSource() error {
 
 		p, err := source.Clone()
 		if err != nil {
+			log.Error(err)
 			return err
 		}
+		log.Infof("git cloned from %s to %s", source.Remote, p)
 		source.CodePath = path.Join(p, strings.TrimLeft(pathToSource, "//"))
 	} else {
 		source.CodePath = s.Location

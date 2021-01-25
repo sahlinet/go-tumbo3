@@ -62,7 +62,7 @@ viewProject listing =
         , p [] [ text listing.gitrepository.url ]
         , p [] [ text listing.gitrepository.version ]
         , span [ class "badge badge-pill badge-secondary" ]
-            [ text listing.state ]
+            [ text listing.state.state ]
         , viewErrorDiv listing
 
         --        , div [ class "alert alert-warning" ]
@@ -73,9 +73,9 @@ viewProject listing =
 
 viewErrorDiv : Project -> Html msg
 viewErrorDiv listing =
-    if String.length listing.errormsg > 0 then
+    if String.length listing.state.errormsg > 0 then
         div [ class "alert alert-warning" ]
-            [ text listing.errormsg
+            [ text listing.state.errormsg
             ]
 
     else

@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/go-git/go-git/v5"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Source struct {
@@ -15,27 +17,36 @@ type Source struct {
 }
 
 func (s *Source) Clone() (string, error) {
-	d, err := Checkout(s.Remote)
+	d, version, err := Checkout(s.Remote)
 	if err != nil {
 		return "", err
 	}
+	s.Version = version
 	return d, nil
 }
 
-func Checkout(cloneUrl string) (string, error) {
+func Checkout(cloneUrl string) (string, string, error) {
 	t, err := tempDir()
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
-	_, err = git.PlainClone(t, false, &git.CloneOptions{
+	r, err := git.PlainClone(t, false, &git.CloneOptions{
 		URL:      cloneUrl,
 		Progress: os.Stdout,
 	})
 	if err != nil {
-		return "", err
+		return "", "", err
+	}
+	ref, err := r.Head()
+	if err != nil {
+		return "", "", err
 	}
 
-	return t, nil
+	commit, err := r.CommitObject(ref.Hash())
+	commitHash := commit.Hash.String()
+	log.Infof("on commitHash: %s", commitHash)
+
+	return t, commitHash, nil
 }
 
 func tempDir() (string, error) {

@@ -111,8 +111,9 @@ func ProjectServiceState(projectID int, state string, tx *gorm.DB) (*models.Proj
 
 		project.GitRepository.Version = runnable.Source.Version
 		log.Info("Running version ", project.GitRepository.Version)
-		project.State = "Running"
-		project.ErrorMsg = ""
+		project.ProjectState = &models.ProjectState{
+			State: "Running",
+		}
 		project.Update(tx)
 
 	}
@@ -139,7 +140,7 @@ func ProjectServiceState(projectID int, state string, tx *gorm.DB) (*models.Proj
 			return project, err
 		}
 
-		project.State = "Stopped"
+		project.ProjectState.State = "Stopped"
 		project.Update(nil)
 	}
 

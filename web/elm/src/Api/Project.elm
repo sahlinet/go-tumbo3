@@ -31,8 +31,7 @@ type alias Project =
     { name : String
     , id : Int
     , description : String
-    , state : String
-    , errormsg : String
+    , state : ProjectState
     , gitrepository : GitRepository
     }
 
@@ -43,14 +42,19 @@ type alias GitRepository =
     }
 
 
+type alias ProjectState =
+    { state : String
+    , errormsg : String
+    }
+
+
 projectDecoder : Json.Decoder Project
 projectDecoder =
-    Json.map6 Project
+    Json.map5 Project
         (Json.field "name" Json.string)
         (Json.field "id" Json.int)
         (Json.field "description" Json.string)
-        (Json.field "state" Json.string)
-        (Json.field "errormsg" Json.string)
+        (Json.field "state" projectStateDecoder)
         (Json.field "gitrepository" gitRepositoryDecoder)
 
 
@@ -59,6 +63,13 @@ gitRepositoryDecoder =
     Json.map2 GitRepository
         (Json.field "url" Json.string)
         (Json.field "version" Json.string)
+
+
+projectStateDecoder : Json.Decoder ProjectState
+projectStateDecoder =
+    Json.map2 ProjectState
+        (Json.field "state" Json.string)
+        (Json.field "errormsg" Json.string)
 
 
 
