@@ -27,6 +27,21 @@ resources:
       repository: philipsahli/go-tumbo
       username: ((docker.username))
       password: ((docker.password))
+      tag: latest
+
+  - name: busybox
+    type: registry-image
+    icon: docker
+    source:
+      repository: busybox
+
+  - name: my-cluster
+    type: concourse-kubectl-resource-type
+    source:
+      api_server_uri: ((api.server))
+      namespace: tumbo-dev
+      certificate_authority_data: ((api.cad))
+      token: ((api.token))
 
 task-config: &task-config
   platform: linux
@@ -106,19 +121,6 @@ jobs:
                 go build -o build/tumbo ./cmd/tumbo
           outputs:
             - name: go-tumbo-git-updated
-      # - task: output
-      #   image: golang-1.14.x-image
-      #   config:
-      #     << : *task-config
-      #     run:
-      #       path: /bin/sh
-      #       args:
-      #         - -c
-      #         - |
-      #            pwd
-      #            ls -alR
-      #     inputs:
-      #     - name: go-tumbo-git-updated
       - task: build-image
         privileged: true
         config:
@@ -144,3 +146,44 @@ jobs:
       # push using `registry-image` resource
       - put: go-tumbo-image
         params: { image: image/image.tar }
+
+  - name: deploy
+    plan:
+      - get: go-tumbo-git
+      - get: busybox
+      - task: annotate-deployments
+        image: busybox
+        config:
+          platform: linux
+          inputs:
+            - name: go-tumbo-git
+              path: go-tumbo-git
+          outputs:
+            - name: go-tumbo-git-updated
+          run:
+            path: /bin/sh
+            args:
+              - -c
+              - |
+                cp -rp go-tumbo-git go-tumbo-git-updated
+                cd go-tumbo-git-updated/go-tumbo-git
+
+
+                ref=`cat .git/describe_ref`
+                echo ${ref}
+
+                sed -i "s/\(version:\).*$/\1 ${ref}/" deployments/deployment.yaml
+                cat deployments/deployment.yaml
+      - get: go-tumbo-image
+        trigger: true
+        passed: ["build-and-push"]
+      - put: my-cluster
+        params:
+          file: "go-tumbo-git-updated/go-tumbo-git/deployments/"
+
+resource_types:
+  - name: concourse-kubectl-resource-type
+    type: docker-image
+    source:
+      repository: jmkarthik/concourse-kubectl-resource
+      tag: latest
