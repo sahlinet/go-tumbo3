@@ -1,5 +1,9 @@
 # Tumbo
 
+![CI](https://concourse.sahli.net/api/v1/teams/main/pipelines/go-tumbo3/jobs/unittest/badge)]
+
+
+
 ### UI
 #### Run UI
 
