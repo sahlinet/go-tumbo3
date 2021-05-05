@@ -127,8 +127,8 @@ func WaitForState(baseUrl, token string, project *models.Project, state string) 
 		case err != nil:
 			// request error - return it
 			return err
-		case project.State != state:
-			return fmt.Errorf("retry, state is %s, not %s", project.State, state)
+		case project.ProjectState.State != state:
+			return fmt.Errorf("retry, state is %s, not %s", project.ProjectState.State, state)
 			//case project.State == state:
 			// retryable StatusCode - return it
 			//return retry.Stop(fmt.Errorf("expected state is " + state))

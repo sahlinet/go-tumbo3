@@ -6,6 +6,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Project struct {
@@ -15,13 +16,25 @@ type Project struct {
 	Description     string    `json:"description"`
 	CreatedBy       string    `json:"created_by"`
 	ModifiedBy      string    `json:"modified_by"`
-	State           string    `json:"state"`
 	BackOffDatetime time.Time `json:"backoff_datetime"`
-	ErrorMsg        string    `json:"errormsg"`
 	BuildRetries    uint      `json:"retry"`
 
+	ProjectState  *ProjectState  `json:"state"`
 	GitRepository *GitRepository `json:"gitrepository"`
 	Runner        *Runner        `json:"runner"`
+}
+
+type ProjectState struct {
+	Model
+
+	State    string `json:"state"`
+	ErrorMsg string `json:"errormsg"`
+
+	ProjectID uint
+}
+
+func (ProjectState) TableName() string {
+	return "project_state"
 }
 
 type GitRepository struct {
@@ -76,7 +89,7 @@ func GetProjectTotal() (int64, error) {
 func GetProjects() ([]*Project, error) {
 	var projects []*Project
 	//err := db.Offset(pageNum).Limit(pageSize).Find(&projects).Error
-	err := db.Preload("GitRepository").Find(&projects).Error
+	err := db.Preload("GitRepository").Preload("ProjectState").Order("name").Find(&projects).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -87,7 +100,7 @@ func GetProjects() ([]*Project, error) {
 // GetProject Get a single project based on ID
 func GetProject(id uint) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Where("id = ?", id).First(&project).Error
+	err := db.Preload("GitRepository").Preload("ProjectState").Where("id = ?", id).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -101,8 +114,8 @@ func GetProjectForShareOrUpdate(id uint, strength string) (*Project, *gorm.DB, e
 	tx := db.Begin()
 	//tx.Set("gorm:query_option", "NOWAIT")
 	//err := tx.Debug().Clauses(clause.Locking{Strength: strength}, NoWait{}).Preload("GitRepository").Where("id = ?", id).First(&project).Error
-	//err := tx.Debug().Clauses(clause.Locking{Strength: strength, Options: "NOWAIT"}).Preload("GitRepository").Where("id = ?", id).First(&project).Error
-	err := tx.Debug().Preload("GitRepository").Where("id = ?", id).First(&project).Error
+	err := tx.Debug().Clauses(clause.Locking{Strength: strength, Options: "NOWAIT"}).Preload("GitRepository").Preload("ProjectState").Where("id = ?", id).First(&project).Error
+	//err := tx.Debug().Preload("GitRepository").Preload("ProjectState").Where("id = ?", id).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, nil, err
 	}
@@ -117,7 +130,7 @@ func GetProjectForShareOrUpdate(id uint, strength string) (*Project, *gorm.DB, e
 
 func GetProjectByName(name string) (*Project, error) {
 	var project Project
-	err := db.Preload("GitRepository").Where("name = ?", name).First(&project).Error
+	err := db.Preload("GitRepository").Preload("ProjectState").Where("name = ?", name).First(&project).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
@@ -140,7 +153,9 @@ func AddProject(data map[string]interface{}) error {
 		Name:        data["name"].(string),
 		Description: data["description"].(string),
 		//CreatedBy:   data["created_by"].(string),
-		State: data["state"].(string),
+		ProjectState: &ProjectState{
+			State: data["state"].(string),
+		},
 	}
 	if err := db.Debug().Create(&project).Error; err != nil {
 		return err
@@ -161,6 +176,11 @@ func (project *Project) Update(tx *gorm.DB) error {
 		log.Fatal(err)
 	}
 
+	err = tx.Model(&project).Association("ProjectState").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	tx.Save(project)
 	if err := tx.Session(&gorm.Session{FullSaveAssociations: true}).Debug().Updates(project).Error; err != nil {
 		return err
@@ -170,8 +190,19 @@ func (project *Project) Update(tx *gorm.DB) error {
 }
 
 func (project *Project) UpdateStateInDB(state string, tx *gorm.DB) error {
-	project.State = state
-	project.ErrorMsg = ""
+	if tx == nil {
+		tx = db
+	}
+	project.ProjectState.State = state
+	project.ProjectState.ErrorMsg = ""
+	return project.Update(tx)
+}
+
+func (project *Project) UpdateFullStateInDB(state *ProjectState, tx *gorm.DB) error {
+	if tx == nil {
+		tx = db
+	}
+	project.ProjectState = state
 	return project.Update(tx)
 
 }
@@ -187,6 +218,11 @@ func (project *Project) CreateOrUpdate() (*Project, error) {
 		log.Fatal(err)
 	}
 
+	err = db.Model(&project).Association("ProjectState").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	p, err := GetProjectByName(project.Name)
 	log.Info(p, err)
 	if p.Name != "" {
@@ -197,6 +233,8 @@ func (project *Project) CreateOrUpdate() (*Project, error) {
 		}
 		return project, nil
 	}
+
+	project.ProjectState = &ProjectState{}
 
 	err = db.Create(&project).Error
 	if err != nil {

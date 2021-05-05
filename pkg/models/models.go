@@ -42,7 +42,13 @@ func Setup(repository *Repository) *gorm.DB {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	err = db.Table("git_repositories").AutoMigrate(&GitRepository{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = db.Table("project_state").AutoMigrate(&ProjectState{})
 	if err != nil {
 		log.Fatal(err)
 	}

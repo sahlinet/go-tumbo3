@@ -31,12 +31,9 @@ func localTestProjects() []*models.Project {
 	projects := make([]*models.Project, 0)
 
 	projects = append(projects, &models.Project{
-		/* 		Model: models.Model{
-			ID: 0,
-		} ,*/
-		Name:        "the-project",
-		Description: "a project to test",
-		State:       "not started",
+		Name:         "the-project",
+		Description:  "a project to test",
+		ProjectState: &models.ProjectState{State: "not started"},
 		GitRepository: &models.GitRepository{
 			Url: examplePath,
 		},
@@ -45,9 +42,9 @@ func localTestProjects() []*models.Project {
 	examplePath = path.Join(d, "example-plugin-go-grpc-fail")
 
 	projects = append(projects, &models.Project{
-		Name:        "failing application",
-		Description: "an application that fails",
-		State:       "not started",
+		Name:         "failing application",
+		Description:  "an application that fails",
+		ProjectState: &models.ProjectState{State: "not started"},
 		GitRepository: &models.GitRepository{
 			Url: examplePath,
 		},
@@ -59,11 +56,11 @@ func gitTestProjects() []*models.Project {
 	projects := make([]*models.Project, 0)
 
 	projects = append(projects, &models.Project{
-		Name:        "the-git-project",
-		Description: "a project to test",
-		State:       "not started",
+		Name:         "the-git-project",
+		Description:  "a project to test",
+		ProjectState: &models.ProjectState{State: "not started"},
 		GitRepository: &models.GitRepository{
-			Url: "https://github.com/sahlinet/go-tumbo3.git//examples/example-plugin-go-grpc",
+			Url: "https://github.com/sahlinet/go-tumbo3-examples.git//example-plugin-go-grpc",
 		},
 	})
 	return projects

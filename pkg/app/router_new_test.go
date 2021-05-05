@@ -55,6 +55,19 @@ func TestServerNew(t *testing.T) {
 				},
 			},
 		},
+		/*
+			{
+				expectedStarting:   true,
+				expectedHTTPStatus: http.StatusOK,
+				project: models.Project{
+					Name:        "git-project",
+					Description: "huhu",
+					GitRepository: &models.GitRepository{
+						Url: "https://github.com/sahlinet/go-tumbo3-examples.git/example-plugin-go-grpc",
+					},
+				},
+			},
+		*/
 		/*		{
 				expectedStarting:   false,
 				expectedHTTPStatus: http.StatusOK,
@@ -95,7 +108,7 @@ func TestServerNew(t *testing.T) {
 			if tt.expectedStarting {
 				err = client.StartProject(url, token, &tt.project)
 				assert.Nil(t, err)
-				assert.Equal(t, "Running", tt.project.State)
+				assert.Equal(t, "Running", tt.project.ProjectState.State)
 				assert.NotEmpty(t, tt.project.GitRepository.Version)
 
 				// Access
@@ -103,7 +116,7 @@ func TestServerNew(t *testing.T) {
 				// Stop
 				client.StopProject(url, token, &tt.project)
 
-				assert.Equal(t, "Stopped", tt.project.State)
+				assert.Equal(t, "Stopped", tt.project.ProjectState.State)
 			}
 
 			// Delete
