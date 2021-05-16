@@ -96,3 +96,19 @@ jobs:
             text: |
               The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
               $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+      - task: validate-helm-chart
+        file: go-tumbo3-pr/ci/tasks/validate-helm-chart.yaml
+        input_mapping:
+          go-tumbo-git: go-tumbo3-pr
+        on_failure:
+          put: notify
+          params:
+            text: |
+              The pipeline $BUILD_PIPELINE_NAME has failed, check:
+              $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        on_success:
+          put: notify
+          params:
+            text: |
+              The pipeline $BUILD_PIPELINE_NAME has succeeded, check:
+              $ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME

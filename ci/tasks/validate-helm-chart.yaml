@@ -1,0 +1,25 @@
+---
+platform: linux
+
+inputs:
+  - name: go-tumbo-git
+params:
+  GO111MODULE: "on"
+
+image_resource:
+  type: registry-image
+  source:
+    repository: philipsahli/cicd-image
+    tag: 0.13.0
+
+run:
+  path: /bin/sh
+  args:
+    - -c
+    - |
+      set -e
+      cd go-tumbo-git
+
+      helm lint --strict ./chart/
+
+      echo $?
