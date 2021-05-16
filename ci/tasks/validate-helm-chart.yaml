@@ -20,6 +20,6 @@ run:
       set -e
       cd go-tumbo-git
 
-      helm lint ./chart/
+      helm lint --strict ./chart/
 
       echo $?
